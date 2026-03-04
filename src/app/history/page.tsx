@@ -52,7 +52,7 @@ export default async function HistoryPage() {
       <div className="max-w-2xl mx-auto px-4 py-12">
 
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Tournament History</h1>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Tournament Results</h1>
           <p className="text-slate-500 text-sm mt-1">2026 · {tournaments.length} tournaments completed</p>
         </div>
 

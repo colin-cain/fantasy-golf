@@ -50,7 +50,7 @@ export default async function GolfersPage() {
       <div className="max-w-4xl mx-auto px-4 py-12">
 
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Used Golfers</h1>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Picks</h1>
           <p className="text-slate-500 text-sm mt-1">2026 · {totalUsed} picks made across all members</p>
         </div>
 
