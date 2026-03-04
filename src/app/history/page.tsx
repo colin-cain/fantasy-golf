@@ -96,26 +96,28 @@ export default async function HistoryPage() {
                 }`}
               >
                 {/* Tournament header */}
-                <div className={`px-5 py-4 flex items-start justify-between gap-3 border-b ${
+                <div className={`px-5 py-4 border-b ${
                   isLive ? 'border-emerald-100 bg-emerald-50/40' : 'border-stone-100'
                 }`}>
-                  <div className="min-w-0">
-                    {isLive && (
-                      <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 mb-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        In Progress
-                      </span>
-                    )}
-                    <h2 className="font-semibold text-slate-900">{tournament.name}</h2>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      {new Date(tournament.start_date).toLocaleDateString('en-US', {
-                        month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC'
-                      })}
-                    </p>
+                  {isLive && (
+                    <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 mb-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      In Progress
+                    </span>
+                  )}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h2 className="font-semibold text-slate-900">{tournament.name}</h2>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        {new Date(tournament.start_date).toLocaleDateString('en-US', {
+                          month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC'
+                        })}
+                      </p>
+                    </div>
+                    <span className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium ${TYPE_STYLES[tournament.type]}`}>
+                      {TYPE_LABELS[tournament.type]}
+                    </span>
                   </div>
-                  <span className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium ${TYPE_STYLES[tournament.type]}`}>
-                    {TYPE_LABELS[tournament.type]}
-                  </span>
                 </div>
 
                 {/* Picks table */}
