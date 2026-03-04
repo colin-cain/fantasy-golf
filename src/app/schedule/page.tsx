@@ -88,7 +88,7 @@ export default async function SchedulePage() {
 
                 {/* Draft order — only show for upcoming */}
                 {!done && sortedDraft.length > 0 && (
-                  <div className="flex items-center gap-2 mt-3">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-3">
                     <span className="text-xs text-slate-500 mr-1">Draft order:</span>
                     {sortedDraft.map((slot, i) => (
                       <span key={slot.pick_position} className="flex items-center gap-1">
