@@ -7,10 +7,10 @@ export default function FGLLogo({ className = '' }: Props) {
     <div className={`inline-flex items-stretch bg-orange-600 rounded-[9px] overflow-hidden ring-1 ring-white/10 ${className}`}>
 
       {/* FGL — left section */}
-      <div className="flex items-center justify-center w-[62px]">
+      <div className="flex items-center justify-center w-[68px]">
         <span
           className="text-white leading-none"
-          style={{ fontFamily: 'var(--font-bebas)', fontSize: '27px', letterSpacing: '0.08em', paddingTop: '2px' }}
+          style={{ fontFamily: 'var(--font-bebas)', fontSize: '30px', letterSpacing: '0.08em', paddingTop: '2px' }}
         >
           FGL
         </span>
@@ -19,34 +19,86 @@ export default function FGLLogo({ className = '' }: Props) {
       {/* Divider with golf ball */}
       <div className="flex flex-col items-center py-1.5">
         <div className="w-px flex-1 bg-white/25" />
-        {/* Golf ball — many small dimples, not bowling ball */}
         <div className="my-0.5 flex-shrink-0">
+          {/* Golf ball: hex-grid dimple pattern clipped to circle */}
           <svg viewBox="0 0 12 12" width="11" height="11">
+            <defs>
+              <clipPath id="fgl-ball-clip">
+                <circle cx="6" cy="6" r="5.4" />
+              </clipPath>
+            </defs>
             <circle cx="6" cy="6" r="5.5" fill="white" />
-            {/* Dimples scattered across the ball */}
-            <circle cx="4"   cy="3.8" r="0.55" fill="rgba(234,88,12,0.28)" />
-            <circle cx="6"   cy="3.2" r="0.55" fill="rgba(234,88,12,0.28)" />
-            <circle cx="8"   cy="3.8" r="0.55" fill="rgba(234,88,12,0.28)" />
-            <circle cx="3.2" cy="5.8" r="0.55" fill="rgba(234,88,12,0.28)" />
-            <circle cx="5.2" cy="5.2" r="0.55" fill="rgba(234,88,12,0.28)" />
-            <circle cx="7.2" cy="5.2" r="0.55" fill="rgba(234,88,12,0.28)" />
-            <circle cx="8.8" cy="5.8" r="0.55" fill="rgba(234,88,12,0.28)" />
-            <circle cx="4"   cy="7.8" r="0.55" fill="rgba(234,88,12,0.28)" />
-            <circle cx="6"   cy="8.4" r="0.55" fill="rgba(234,88,12,0.28)" />
-            <circle cx="8"   cy="7.8" r="0.55" fill="rgba(234,88,12,0.28)" />
+            <g clipPath="url(#fgl-ball-clip)">
+              {/* Row 1 y=1.2 */}
+              <circle cx="3.2" cy="1.2" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="4.6" cy="1.2" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="6.0" cy="1.2" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="7.4" cy="1.2" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="8.8" cy="1.2" r="0.5" fill="rgba(234,88,12,0.3)" />
+              {/* Row 2 y=2.5 offset */}
+              <circle cx="2.5" cy="2.5" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="3.9" cy="2.5" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="5.3" cy="2.5" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="6.7" cy="2.5" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="8.1" cy="2.5" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="9.5" cy="2.5" r="0.5" fill="rgba(234,88,12,0.3)" />
+              {/* Row 3 y=3.8 */}
+              <circle cx="1.8" cy="3.8" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="3.2" cy="3.8" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="4.6" cy="3.8" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="6.0" cy="3.8" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="7.4" cy="3.8" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="8.8" cy="3.8" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="10.2" cy="3.8" r="0.5" fill="rgba(234,88,12,0.3)" />
+              {/* Row 4 y=5.1 offset */}
+              <circle cx="1.1" cy="5.1" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="2.5" cy="5.1" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="3.9" cy="5.1" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="5.3" cy="5.1" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="6.7" cy="5.1" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="8.1" cy="5.1" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="9.5" cy="5.1" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="10.9" cy="5.1" r="0.5" fill="rgba(234,88,12,0.3)" />
+              {/* Row 5 y=6.4 */}
+              <circle cx="1.8" cy="6.4" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="3.2" cy="6.4" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="4.6" cy="6.4" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="6.0" cy="6.4" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="7.4" cy="6.4" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="8.8" cy="6.4" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="10.2" cy="6.4" r="0.5" fill="rgba(234,88,12,0.3)" />
+              {/* Row 6 y=7.7 offset */}
+              <circle cx="2.5" cy="7.7" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="3.9" cy="7.7" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="5.3" cy="7.7" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="6.7" cy="7.7" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="8.1" cy="7.7" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="9.5" cy="7.7" r="0.5" fill="rgba(234,88,12,0.3)" />
+              {/* Row 7 y=9.0 */}
+              <circle cx="3.2" cy="9.0" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="4.6" cy="9.0" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="6.0" cy="9.0" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="7.4" cy="9.0" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="8.8" cy="9.0" r="0.5" fill="rgba(234,88,12,0.3)" />
+              {/* Row 8 y=10.3 offset */}
+              <circle cx="3.9" cy="10.3" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="5.3" cy="10.3" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="6.7" cy="10.3" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="8.1" cy="10.3" r="0.5" fill="rgba(234,88,12,0.3)" />
+            </g>
           </svg>
         </div>
         <div className="w-px flex-1 bg-white/25" />
       </div>
 
       {/* Triple D logo — right section */}
-      <div className="flex items-center justify-center w-[62px]">
+      <div className="flex items-center justify-center w-[68px]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="https://us1-prod-images.disco-api.com/2026/02/24/364c6d96-4edb-3091-acbe-acc0ac8fa0b4.png?w=120"
           alt="Diners, Drive-Ins and Dives"
           className="object-contain brightness-0 invert"
-          style={{ height: '22px', maxWidth: '58px' }}
+          style={{ height: '25px', maxWidth: '62px' }}
         />
       </div>
 
