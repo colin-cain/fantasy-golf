@@ -122,10 +122,10 @@ export default async function HistoryPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-stone-50 border-b border-stone-100 text-xs uppercase tracking-widest text-slate-400">
-                      {!isLive && <th className="px-3 sm:px-5 py-2.5 text-left w-12">#</th>}
+                      <th className="px-3 sm:px-5 py-2.5 text-left w-12">#</th>
                       <th className="px-3 sm:px-5 py-2.5 text-left">Member</th>
                       <th className="hidden sm:table-cell px-5 py-2.5 text-left">Golfer</th>
-                      {!isLive && <th className="px-3 sm:px-5 py-2.5 text-right">Earnings</th>}
+                      <th className="px-3 sm:px-5 py-2.5 text-right">Earnings</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-stone-100">
@@ -135,23 +135,19 @@ export default async function HistoryPage() {
                         : null
                       return (
                         <tr key={pick.league_members.name} className="hover:bg-stone-50 transition-colors">
-                          {!isLive && (
-                            <td className="px-3 sm:px-5 py-3">
-                              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${rank !== null ? getRankBadge(rank) : 'bg-stone-100 text-slate-300 border border-stone-200'}`}>
-                                {rank !== null ? rank + 1 : '—'}
-                              </div>
-                            </td>
-                          )}
+                          <td className="px-3 sm:px-5 py-3">
+                            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${rank !== null ? getRankBadge(rank) : 'bg-stone-100 text-slate-300 border border-stone-200'}`}>
+                              {rank !== null ? rank + 1 : '—'}
+                            </div>
+                          </td>
                           <td className="px-3 sm:px-5 py-3 font-medium text-slate-900">
                             {pick.league_members.name}
                             <span className="block text-xs text-slate-400 font-normal sm:hidden">{pick.golfer_name}</span>
                           </td>
                           <td className="hidden sm:table-cell px-5 py-3 text-slate-600">{pick.golfer_name}</td>
-                          {!isLive && (
-                            <td className={`px-3 sm:px-5 py-3 text-right font-mono font-semibold ${pick.earnings > 0 ? 'text-emerald-700' : 'text-slate-300'}`}>
-                              {pick.earnings > 0 ? `$${pick.earnings.toLocaleString()}` : '—'}
-                            </td>
-                          )}
+                          <td className={`px-3 sm:px-5 py-3 text-right font-mono font-semibold ${pick.earnings > 0 ? 'text-emerald-700' : 'text-slate-300'}`}>
+                            {pick.earnings > 0 ? `$${pick.earnings.toLocaleString()}` : '—'}
+                          </td>
                         </tr>
                       )
                     })}
