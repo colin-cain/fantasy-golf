@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Stop Crying Schrette",
+  title: "Fantasy Golf League",
   description: "2026 Fantasy Golf League",
 };
 

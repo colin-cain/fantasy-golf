@@ -89,7 +89,7 @@ export default async function HomePage() {
 
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Season Standings</h1>
-          <p className="text-slate-500 text-sm mt-1">2026 · based on PGA Tour prize earnings</p>
+          <p className="text-slate-500 text-sm mt-1">2026 · Based on PGA Tour prize earnings</p>
         </div>
 
         {/* Standings table */}
