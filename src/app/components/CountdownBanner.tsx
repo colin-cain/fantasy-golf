@@ -5,7 +5,8 @@ import { useEffect, useState } from 'react'
 type Props = {
   name: string
   type: string
-  startDate: string // "YYYY-MM-DD"
+  startDate: string   // "YYYY-MM-DD" — fallback if no tee_time
+  teeTime: string | null // ISO 8601 UTC timestamp, e.g. "2026-03-05T12:40:00Z"
 }
 
 const TYPE_STYLES: Record<string, string> = {
@@ -20,13 +21,15 @@ const TYPE_LABELS: Record<string, string> = {
   regular:   'Regular',
 }
 
-function getTimeLeft(targetDate: string) {
-  const now  = Date.now()
-  const end  = new Date(targetDate).getTime() // midnight UTC of start_date
-  const diff = end - now
+// Fall back to noon UTC on the start date if no tee_time is set
+function resolveTarget(startDate: string, teeTime: string | null): string {
+  if (teeTime) return teeTime
+  return startDate + 'T12:00:00Z'
+}
 
+function getTimeLeft(target: string) {
+  const diff = new Date(target).getTime() - Date.now()
   if (diff <= 0) return null
-
   return {
     days:    Math.floor(diff / 86_400_000),
     hours:   Math.floor((diff % 86_400_000) / 3_600_000),
@@ -39,17 +42,16 @@ function pad(n: number) {
   return String(n).padStart(2, '0')
 }
 
-export default function CountdownBanner({ name, type, startDate }: Props) {
+export default function CountdownBanner({ name, type, startDate, teeTime }: Props) {
+  const target = resolveTarget(startDate, teeTime)
   const [timeLeft, setTimeLeft] = useState<ReturnType<typeof getTimeLeft>>(null)
 
   useEffect(() => {
-    // Set immediately so the client matches quickly
-    setTimeLeft(getTimeLeft(startDate))
-    const id = setInterval(() => setTimeLeft(getTimeLeft(startDate)), 1_000)
+    setTimeLeft(getTimeLeft(target))
+    const id = setInterval(() => setTimeLeft(getTimeLeft(target)), 1_000)
     return () => clearInterval(id)
-  }, [startDate])
+  }, [target])
 
-  // Hide if not yet hydrated or tournament already started
   if (!timeLeft) return null
 
   const { days, hours, minutes, seconds } = timeLeft

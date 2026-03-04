@@ -27,7 +27,7 @@ export default async function RootLayout({
 }>) {
   const { data: next } = await supabase
     .from('tournaments')
-    .select('name, type, start_date')
+    .select('name, type, start_date, tee_time')
     .neq('status', 'completed')
     .order('start_date', { ascending: true })
     .limit(1)
@@ -47,6 +47,7 @@ export default async function RootLayout({
             name={next.name}
             type={next.type}
             startDate={next.start_date}
+            teeTime={next.tee_time ?? null}
           />
         )}
         {children}
