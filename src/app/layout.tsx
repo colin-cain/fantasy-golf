@@ -37,6 +37,9 @@ export default function RootLayout({
             <Link href="/golfers" className="text-sm font-medium hover:text-green-400 transition-colors">
               Used Golfers
             </Link>
+            <Link href="/schedule" className="text-sm font-medium hover:text-green-400 transition-colors">
+              Schedule
+            </Link>
           </div>
         </nav>
         {children}
