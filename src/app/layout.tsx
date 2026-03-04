@@ -25,7 +25,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Next upcoming tournament (not yet started)
+  // Only show countdown for the next upcoming (not yet started) tournament
   const { data: next } = await supabase
     .from('tournaments')
     .select('name, type, start_date, tee_time')
@@ -34,23 +34,13 @@ export default async function RootLayout({
     .limit(1)
     .single()
 
-  // Is any tournament currently in progress?
-  const { data: live } = await supabase
-    .from('tournaments')
-    .select('id')
-    .eq('status', 'in_progress')
-    .limit(1)
-    .single()
-
-  const isLive = !!live
-
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <nav className="bg-white border-b border-stone-200 px-4">
           <div className="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between sm:h-14 py-3 sm:py-0 gap-2.5 sm:gap-0">
             <span className="text-sm font-bold text-slate-900 tracking-tight">⛳ FGL&apos;26</span>
-            <NavLinks isLive={isLive} />
+            <NavLinks />
           </div>
         </nav>
         {next && (

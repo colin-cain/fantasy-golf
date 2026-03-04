@@ -3,19 +3,15 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-const BASE_LINKS = [
+const links = [
   { href: '/',         label: 'Standings' },
   { href: '/history',  label: 'Results'   },
   { href: '/golfers',  label: 'Picks'     },
   { href: '/schedule', label: 'Schedule'  },
 ]
 
-export default function NavLinks({ isLive }: { isLive: boolean }) {
+export default function NavLinks() {
   const pathname = usePathname()
-
-  const links = isLive
-    ? [...BASE_LINKS, { href: '/live', label: '🟢 Live' }]
-    : BASE_LINKS
 
   return (
     <div className="flex items-center gap-4 sm:gap-6">

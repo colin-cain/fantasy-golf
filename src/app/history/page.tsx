@@ -11,6 +11,7 @@ type Tournament = {
   name: string
   type: string
   start_date: string
+  status: string
   picks: Pick[]
 }
 
@@ -41,22 +42,29 @@ async function getHistory(): Promise<Tournament[]> {
   const { data, error } = await supabase
     .from('tournaments')
     .select(`
-      id, name, type, start_date,
+      id, name, type, start_date, status,
       picks(
         golfer_name,
         earnings,
         league_members(name)
       )
     `)
-    .eq('status', 'completed')
-    .order('start_date', { ascending: true })
+    .in('status', ['completed', 'in_progress'])
+    .order('start_date', { ascending: false })
 
   if (error) throw error
-  return (data as unknown) as Tournament[]
+
+  const tournaments = (data as unknown) as Tournament[]
+
+  // Only surface in_progress tournaments once at least one pick exists
+  return tournaments.filter(
+    t => t.status === 'completed' || t.picks.length > 0
+  )
 }
 
 export default async function HistoryPage() {
   const tournaments = await getHistory()
+  const completed = tournaments.filter(t => t.status === 'completed')
 
   return (
     <main className="min-h-screen bg-stone-100">
@@ -64,24 +72,40 @@ export default async function HistoryPage() {
 
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Tournament Results</h1>
-          <p className="text-slate-500 text-sm mt-1">2026 · {tournaments.length} tournaments completed</p>
+          <p className="text-slate-500 text-sm mt-1">2026 · {completed.length} tournaments completed</p>
         </div>
 
         <div className="flex flex-col gap-5">
           {tournaments.map((tournament) => {
-            const sortedPicks = [...tournament.picks].sort((a, b) => b.earnings - a.earnings)
+            const isLive = tournament.status === 'in_progress'
 
-            // Dense rank by earnings — ties share the same rank, $0 earners get null
+            const sortedPicks = [...tournament.picks].sort((a, b) =>
+              isLive ? 0 : b.earnings - a.earnings
+            )
+
+            // Dense rank by earnings — only meaningful for completed tournaments
             const uniqueEarnings = [...new Set(sortedPicks.map(p => p.earnings).filter(e => e > 0))]
               .sort((a, b) => b - a)
             const earningsRank = new Map(uniqueEarnings.map((e, i) => [e, i]))
 
             return (
-              <div key={tournament.id} className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
-
+              <div
+                key={tournament.id}
+                className={`bg-white rounded-xl border shadow-sm overflow-hidden ${
+                  isLive ? 'border-emerald-200' : 'border-stone-200'
+                }`}
+              >
                 {/* Tournament header */}
-                <div className="px-5 py-4 flex items-start justify-between gap-3 border-b border-stone-100">
+                <div className={`px-5 py-4 flex items-start justify-between gap-3 border-b ${
+                  isLive ? 'border-emerald-100 bg-emerald-50/40' : 'border-stone-100'
+                }`}>
                   <div className="min-w-0">
+                    {isLive && (
+                      <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 mb-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        In Progress
+                      </span>
+                    )}
                     <h2 className="font-semibold text-slate-900">{tournament.name}</h2>
                     <p className="text-xs text-slate-400 mt-0.5">
                       {new Date(tournament.start_date).toLocaleDateString('en-US', {
@@ -98,36 +122,47 @@ export default async function HistoryPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-stone-50 border-b border-stone-100 text-xs uppercase tracking-widest text-slate-400">
-                      <th className="px-3 sm:px-5 py-2.5 text-left w-12">#</th>
+                      {!isLive && <th className="px-3 sm:px-5 py-2.5 text-left w-12">#</th>}
                       <th className="px-3 sm:px-5 py-2.5 text-left">Member</th>
                       <th className="hidden sm:table-cell px-5 py-2.5 text-left">Golfer</th>
-                      <th className="px-3 sm:px-5 py-2.5 text-right">Earnings</th>
+                      {!isLive && <th className="px-3 sm:px-5 py-2.5 text-right">Earnings</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-stone-100">
                     {sortedPicks.map((pick) => {
-                      const rank = pick.earnings > 0 ? earningsRank.get(pick.earnings) ?? 3 : null
+                      const rank = !isLive && pick.earnings > 0
+                        ? earningsRank.get(pick.earnings) ?? 3
+                        : null
                       return (
                         <tr key={pick.league_members.name} className="hover:bg-stone-50 transition-colors">
-                          <td className="px-3 sm:px-5 py-3">
-                            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${rank !== null ? getRankBadge(rank) : 'bg-stone-100 text-slate-300 border border-stone-200'}`}>
-                              {rank !== null ? rank + 1 : '—'}
-                            </div>
-                          </td>
+                          {!isLive && (
+                            <td className="px-3 sm:px-5 py-3">
+                              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${rank !== null ? getRankBadge(rank) : 'bg-stone-100 text-slate-300 border border-stone-200'}`}>
+                                {rank !== null ? rank + 1 : '—'}
+                              </div>
+                            </td>
+                          )}
                           <td className="px-3 sm:px-5 py-3 font-medium text-slate-900">
                             {pick.league_members.name}
                             <span className="block text-xs text-slate-400 font-normal sm:hidden">{pick.golfer_name}</span>
                           </td>
                           <td className="hidden sm:table-cell px-5 py-3 text-slate-600">{pick.golfer_name}</td>
-                          <td className={`px-3 sm:px-5 py-3 text-right font-mono font-semibold ${pick.earnings > 0 ? 'text-emerald-700' : 'text-slate-300'}`}>
-                            {pick.earnings > 0 ? `$${pick.earnings.toLocaleString()}` : '—'}
-                          </td>
+                          {!isLive && (
+                            <td className={`px-3 sm:px-5 py-3 text-right font-mono font-semibold ${pick.earnings > 0 ? 'text-emerald-700' : 'text-slate-300'}`}>
+                              {pick.earnings > 0 ? `$${pick.earnings.toLocaleString()}` : '—'}
+                            </td>
+                          )}
                         </tr>
                       )
                     })}
                   </tbody>
                 </table>
 
+                {isLive && (
+                  <p className="text-xs text-slate-400 text-center py-3 border-t border-stone-100">
+                    Results and earnings will appear here once the tournament wraps up
+                  </p>
+                )}
               </div>
             )
           })}
