@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase'
 
+export const dynamic = 'force-dynamic'
+
 type UsedPick = {
   golfer_name: string
   league_members: { name: string }

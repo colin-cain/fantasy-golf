@@ -1,6 +1,8 @@
 import { supabase } from '@/lib/supabase'
 import TournamentStatusLabel from '@/app/components/TournamentStatusLabel'
 
+export const dynamic = 'force-dynamic'
+
 type Pick = {
   golfer_name: string
   earnings: number
@@ -113,13 +115,11 @@ export default async function HistoryPage() {
                 : b.earnings - a.earnings
             )
 
-            // For in-progress cards, find members who haven't picked yet, in draft order
+            // Find members who haven't picked yet, in draft order
             const pickedNames = new Set(sortedPicks.map(p => p.league_members.name))
-            const unpickedMembers = isLive
-              ? allMembers
-                  .filter(name => !pickedNames.has(name))
-                  .sort((a, b) => (draftPositions.get(a) ?? 99) - (draftPositions.get(b) ?? 99))
-              : []
+            const unpickedMembers = allMembers
+              .filter(name => !pickedNames.has(name))
+              .sort((a, b) => (draftPositions.get(a) ?? 99) - (draftPositions.get(b) ?? 99))
 
             // Dense rank by earnings — only meaningful for completed tournaments
             const uniqueEarnings = [...new Set(sortedPicks.map(p => p.earnings).filter(e => e > 0))]

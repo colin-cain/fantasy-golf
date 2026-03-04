@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase'
 
+export const dynamic = 'force-dynamic'
+
 type DraftSlot = {
   pick_position: number
   league_members: { name: string }
@@ -86,15 +88,15 @@ export default async function SchedulePage() {
                   </span>
                 </div>
 
-                {/* Draft order — only show for upcoming */}
-                {!done && sortedDraft.length > 0 && (
+                {/* Draft order */}
+                {sortedDraft.length > 0 && (
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-3">
-                    <span className="text-xs text-slate-500 mr-1">Draft order:</span>
+                    <span className={`text-xs mr-1 ${done ? 'text-slate-300' : 'text-slate-500'}`}>Draft order:</span>
                     {sortedDraft.map((slot, i) => (
                       <span key={slot.pick_position} className="flex items-center gap-1">
-                        <span className="text-xs text-slate-700">{slot.league_members.name}</span>
+                        <span className={`text-xs ${done ? 'text-slate-400' : 'text-slate-700'}`}>{slot.league_members.name}</span>
                         {i < sortedDraft.length - 1 && (
-                          <span className="text-slate-400 text-xs">→</span>
+                          <span className={`text-xs ${done ? 'text-slate-300' : 'text-slate-400'}`}>→</span>
                         )}
                       </span>
                     ))}

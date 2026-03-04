@@ -1,6 +1,8 @@
 import { supabase } from '@/lib/supabase'
 import StandingsChart, { ChartPoint } from './components/StandingsChart'
 
+export const dynamic = 'force-dynamic'
+
 type Standing = {
   name: string
   total_earnings: number
