@@ -12,7 +12,6 @@ async function getStandings(): Promise<Standing[]> {
 
   if (error) throw error
 
-  // Aggregate earnings by member
   const totals: Record<string, number> = {}
   for (const row of data as any[]) {
     const name = row.league_members.name
@@ -24,35 +23,44 @@ async function getStandings(): Promise<Standing[]> {
     .sort((a, b) => b.total_earnings - a.total_earnings)
 }
 
+const RANK_STYLES = [
+  'text-orange-600 font-bold',
+  'text-indigo-600 font-bold',
+  'text-emerald-700 font-bold',
+  'text-slate-500',
+  'text-slate-400',
+  'text-slate-400',
+]
+
 export default async function HomePage() {
   const standings = await getStandings()
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-stone-100">
       <div className="max-w-2xl mx-auto px-4 py-12">
 
-        {/* Header */}
-        <div className="mb-10">
-          <h1 className="text-3xl font-bold tracking-tight">Stop Crying Schrette</h1>
-          <p className="text-gray-400 mt-1">2026 Fantasy Golf · Season Standings</p>
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Season Standings</h1>
+          <p className="text-slate-500 text-sm mt-1">2026 · based on PGA Tour prize earnings</p>
         </div>
 
-        {/* Standings table */}
-        <div className="rounded-xl border border-gray-800 overflow-hidden">
+        <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-900 text-gray-400 text-xs uppercase tracking-wider">
-                <th className="px-5 py-3 text-left w-10">Rank</th>
+              <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
+                <th className="px-5 py-3 text-left w-12">#</th>
                 <th className="px-5 py-3 text-left">Player</th>
                 <th className="px-5 py-3 text-right">Earnings</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800">
+            <tbody className="divide-y divide-stone-100">
               {standings.map((member, index) => (
-                <tr key={member.name} className="bg-gray-950 hover:bg-gray-900 transition-colors">
-                  <td className="px-5 py-4 text-gray-500 font-mono">{index + 1}</td>
-                  <td className="px-5 py-4 font-medium">{member.name}</td>
-                  <td className="px-5 py-4 text-right font-mono text-green-400">
+                <tr key={member.name} className="hover:bg-stone-50 transition-colors">
+                  <td className={`px-5 py-4 font-mono text-sm ${RANK_STYLES[index] ?? 'text-slate-400'}`}>
+                    {index + 1}
+                  </td>
+                  <td className="px-5 py-4 font-medium text-slate-900">{member.name}</td>
+                  <td className="px-5 py-4 text-right font-mono text-emerald-700 font-semibold">
                     ${member.total_earnings.toLocaleString()}
                   </td>
                 </tr>
@@ -61,7 +69,6 @@ export default async function HomePage() {
           </table>
         </div>
 
-        <p className="text-xs text-gray-600 mt-4 text-right">Based on PGA Tour prize earnings</p>
       </div>
     </main>
   )

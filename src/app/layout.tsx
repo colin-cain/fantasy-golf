@@ -25,21 +25,24 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-950 text-white`}>
-        <nav className="border-b border-gray-800 px-4">
-          <div className="max-w-2xl mx-auto flex items-center gap-6 h-14">
-            <Link href="/" className="text-sm font-medium hover:text-green-400 transition-colors">
-              Standings
-            </Link>
-            <Link href="/history" className="text-sm font-medium hover:text-green-400 transition-colors">
-              Tournament History
-            </Link>
-            <Link href="/golfers" className="text-sm font-medium hover:text-green-400 transition-colors">
-              Used Golfers
-            </Link>
-            <Link href="/schedule" className="text-sm font-medium hover:text-green-400 transition-colors">
-              Schedule
-            </Link>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <nav className="bg-white border-b border-stone-200 px-4">
+          <div className="max-w-4xl mx-auto flex items-center justify-between h-14">
+            <span className="text-sm font-bold text-slate-900 tracking-tight">⛳ SCH&apos;26</span>
+            <div className="flex items-center gap-6">
+              <Link href="/" className="text-xs uppercase tracking-widest text-slate-500 hover:text-orange-600 transition-colors">
+                Standings
+              </Link>
+              <Link href="/history" className="text-xs uppercase tracking-widest text-slate-500 hover:text-orange-600 transition-colors">
+                History
+              </Link>
+              <Link href="/golfers" className="text-xs uppercase tracking-widest text-slate-500 hover:text-orange-600 transition-colors">
+                Used Golfers
+              </Link>
+              <Link href="/schedule" className="text-xs uppercase tracking-widest text-slate-500 hover:text-orange-600 transition-colors">
+                Schedule
+              </Link>
+            </div>
           </div>
         </nav>
         {children}

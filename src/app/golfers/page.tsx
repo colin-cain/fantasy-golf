@@ -46,30 +46,30 @@ export default async function GolfersPage() {
   const totalUsed = members.reduce((sum, m) => sum + m.picks.length, 0)
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-stone-100">
       <div className="max-w-4xl mx-auto px-4 py-12">
 
-        <div className="mb-10">
-          <h1 className="text-3xl font-bold tracking-tight">Used Golfers</h1>
-          <p className="text-gray-400 mt-1">2026 Season · {totalUsed} picks made across all members</p>
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Used Golfers</h1>
+          <p className="text-slate-500 text-sm mt-1">2026 · {totalUsed} picks made across all members</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           {members.map(({ member, picks }) => (
-            <div key={member} className="rounded-xl border border-gray-800 overflow-hidden">
+            <div key={member} className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
 
               {/* Member header */}
-              <div className="bg-gray-900 px-5 py-3 flex items-center justify-between">
-                <h2 className="font-semibold">{member}</h2>
-                <span className="text-xs text-gray-500">{picks.length} used</span>
+              <div className="px-5 py-3 flex items-center justify-between border-b border-stone-100">
+                <h2 className="font-semibold text-slate-900">{member}</h2>
+                <span className="text-xs text-slate-400">{picks.length} used</span>
               </div>
 
               {/* Used golfers list */}
-              <ul className="divide-y divide-gray-800">
+              <ul className="divide-y divide-stone-100">
                 {picks.map(({ golfer, tournament }) => (
-                  <li key={golfer} className="px-5 py-3 flex items-center justify-between hover:bg-gray-900 transition-colors">
-                    <span className="text-sm font-medium text-gray-200">{golfer}</span>
-                    <span className="text-xs text-gray-500 ml-4 text-right">{tournament}</span>
+                  <li key={golfer} className="px-5 py-3 flex items-center justify-between hover:bg-stone-50 transition-colors">
+                    <span className="text-sm font-medium text-slate-900">{golfer}</span>
+                    <span className="text-xs text-slate-400 ml-4 text-right">{tournament}</span>
                   </li>
                 ))}
               </ul>
