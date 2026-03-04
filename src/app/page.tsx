@@ -1,6 +1,5 @@
 import { supabase } from '@/lib/supabase'
 import StandingsChart, { ChartPoint } from './components/StandingsChart'
-import { WeeklyPoint } from './components/WeeklyChart'
 
 type Standing = {
   name: string
@@ -33,7 +32,7 @@ async function getStandings(): Promise<Standing[]> {
     .sort((a, b) => b.total_earnings - a.total_earnings)
 }
 
-async function getChartData(): Promise<{ chartData: ChartPoint[]; weeklyData: WeeklyPoint[]; members: string[] }> {
+async function getChartData(): Promise<{ chartData: ChartPoint[]; weeklyData: ChartPoint[]; members: string[] }> {
   const { data, error } = await supabase
     .from('tournaments')
     .select(`
