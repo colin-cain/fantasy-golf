@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import NavLinks from "./components/NavLinks";
 import CountdownBanner from "./components/CountdownBanner";
+import FGLLogo from "./components/FGLLogo";
 import { supabase } from "@/lib/supabase";
 import "./globals.css";
 
@@ -52,7 +53,7 @@ export default async function RootLayout({
 
             {/* Logo lockup */}
             <div className="flex items-center gap-3">
-              <span className="text-lg font-black tracking-tight text-slate-900 uppercase">⛳ FGL &apos;26</span>
+              <FGLLogo className="h-10 w-auto" />
               <div className="hidden sm:flex flex-col items-start border-l border-stone-200 pl-3">
                 <span className="text-[9px] uppercase tracking-widest text-slate-400 font-medium leading-none mb-0.5">Presented by</span>
                 <span className="text-[11px] font-bold text-orange-500 tracking-tight leading-none">Diners, Drive-Ins & Dives</span>
