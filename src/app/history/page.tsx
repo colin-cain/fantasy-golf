@@ -80,8 +80,8 @@ export default async function HistoryPage() {
               <div key={tournament.id} className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
 
                 {/* Tournament header */}
-                <div className="px-5 py-4 flex items-center justify-between border-b border-stone-100">
-                  <div>
+                <div className="px-5 py-4 flex items-start justify-between gap-3 border-b border-stone-100">
+                  <div className="min-w-0">
                     <h2 className="font-semibold text-slate-900">{tournament.name}</h2>
                     <p className="text-xs text-slate-400 mt-0.5">
                       {new Date(tournament.start_date).toLocaleDateString('en-US', {
@@ -89,7 +89,7 @@ export default async function HistoryPage() {
                       })}
                     </p>
                   </div>
-                  <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${TYPE_STYLES[tournament.type]}`}>
+                  <span className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium ${TYPE_STYLES[tournament.type]}`}>
                     {TYPE_LABELS[tournament.type]}
                   </span>
                 </div>

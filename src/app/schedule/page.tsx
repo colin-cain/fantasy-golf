@@ -69,8 +69,8 @@ export default async function SchedulePage() {
 
             return (
               <div key={t.id} className={`px-5 py-4 transition-colors ${done ? 'bg-stone-50' : 'hover:bg-stone-50'}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
                     {done && <span className="text-emerald-500 text-sm">✓</span>}
                     <div>
                       <p className={`font-medium text-sm ${done ? 'text-slate-400' : 'text-slate-900'}`}>{t.name}</p>
@@ -81,7 +81,7 @@ export default async function SchedulePage() {
                       </p>
                     </div>
                   </div>
-                  <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${done ? 'bg-stone-100 text-slate-400 border border-stone-200' : TYPE_STYLES[t.type]}`}>
+                  <span className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium ${done ? 'bg-stone-100 text-slate-400 border border-stone-200' : TYPE_STYLES[t.type]}`}>
                     {TYPE_LABELS[t.type]}
                   </span>
                 </div>
