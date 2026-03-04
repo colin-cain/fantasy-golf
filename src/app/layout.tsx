@@ -55,7 +55,7 @@ export default async function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} ${bebasNeue.variable} antialiased`}>
         <nav className="bg-white border-b border-stone-200 px-4">
-          <div className="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between sm:h-14 py-3 sm:py-0 gap-2.5 sm:gap-0">
+          <div className="max-w-4xl mx-auto flex flex-col items-start sm:flex-row sm:items-center sm:justify-between sm:h-14 py-3 sm:py-0 gap-2.5 sm:gap-0">
 
             {/* Logo lockup */}
             <FGLLogo className="h-9 w-auto" />
