@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import StandingsChart, { ChartPoint } from './components/StandingsChart'
-import WeeklyChart, { WeeklyPoint } from './components/WeeklyChart'
+import { WeeklyPoint } from './components/WeeklyChart'
 
 type Standing = {
   name: string
@@ -153,7 +153,7 @@ export default async function HomePage() {
         {weeklyData.length > 0 && (
           <div className="bg-white rounded-xl border border-stone-200 shadow-sm px-5 pt-5 pb-3 mt-5">
             <p className="text-xs uppercase tracking-widest text-slate-400 mb-4">Earnings by Tournament</p>
-            <WeeklyChart data={weeklyData} members={members} />
+            <StandingsChart data={weeklyData} members={members} />
           </div>
         )}
 
