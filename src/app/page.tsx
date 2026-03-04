@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import StandingsChart, { ChartPoint } from './components/StandingsChart'
+import WeeklyChart, { WeeklyPoint } from './components/WeeklyChart'
 
 type Standing = {
   name: string
@@ -32,7 +33,7 @@ async function getStandings(): Promise<Standing[]> {
     .sort((a, b) => b.total_earnings - a.total_earnings)
 }
 
-async function getChartData(): Promise<{ chartData: ChartPoint[]; members: string[] }> {
+async function getChartData(): Promise<{ chartData: ChartPoint[]; weeklyData: WeeklyPoint[]; members: string[] }> {
   const { data, error } = await supabase
     .from('tournaments')
     .select(`
@@ -64,7 +65,16 @@ async function getChartData(): Promise<{ chartData: ChartPoint[]; members: strin
     }
   })
 
-  return { chartData, members: MEMBERS }
+  // Weekly: each tournament's individual earnings (not cumulative)
+  const weeklyData: WeeklyPoint[] = tournaments.map((t, i) => ({
+    label: `T${i + 1}`,
+    tournament: t.name,
+    ...Object.fromEntries(
+      MEMBERS.map(m => [m, t.picks.find(p => p.league_members.name === m)?.earnings ?? 0])
+    ),
+  }))
+
+  return { chartData, weeklyData, members: MEMBERS }
 }
 
 const RANK_BADGE = [
@@ -77,7 +87,7 @@ const RANK_BADGE = [
 ]
 
 export default async function HomePage() {
-  const [standings, { chartData, members }] = await Promise.all([
+  const [standings, { chartData, weeklyData, members }] = await Promise.all([
     getStandings(),
     getChartData(),
   ])
@@ -131,11 +141,19 @@ export default async function HomePage() {
           </table>
         </div>
 
-        {/* Earnings over time chart */}
+        {/* Cumulative earnings chart */}
         {chartData.length > 0 && (
           <div className="bg-white rounded-xl border border-stone-200 shadow-sm px-5 pt-5 pb-3 mt-5">
             <p className="text-xs uppercase tracking-widest text-slate-400 mb-4">Cumulative Earnings</p>
             <StandingsChart data={chartData} members={members} />
+          </div>
+        )}
+
+        {/* Weekly earnings chart */}
+        {weeklyData.length > 0 && (
+          <div className="bg-white rounded-xl border border-stone-200 shadow-sm px-5 pt-5 pb-3 mt-5">
+            <p className="text-xs uppercase tracking-widest text-slate-400 mb-4">Earnings by Tournament</p>
+            <WeeklyChart data={weeklyData} members={members} />
           </div>
         )}
 
