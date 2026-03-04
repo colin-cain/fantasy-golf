@@ -92,14 +92,6 @@ export default async function HomePage() {
           <p className="text-slate-500 text-sm mt-1">2026 · based on PGA Tour prize earnings</p>
         </div>
 
-        {/* Earnings over time chart */}
-        {chartData.length > 0 && (
-          <div className="bg-white rounded-xl border border-stone-200 shadow-sm px-5 pt-5 pb-3 mb-5">
-            <p className="text-xs uppercase tracking-widest text-slate-400 mb-4">Cumulative Earnings</p>
-            <StandingsChart data={chartData} members={members} />
-          </div>
-        )}
-
         {/* Standings table */}
         <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
@@ -138,6 +130,14 @@ export default async function HomePage() {
             </tbody>
           </table>
         </div>
+
+        {/* Earnings over time chart */}
+        {chartData.length > 0 && (
+          <div className="bg-white rounded-xl border border-stone-200 shadow-sm px-5 pt-5 pb-3 mt-5">
+            <p className="text-xs uppercase tracking-widest text-slate-400 mb-4">Cumulative Earnings</p>
+            <StandingsChart data={chartData} members={members} />
+          </div>
+        )}
 
       </div>
     </main>
