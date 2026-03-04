@@ -39,7 +39,7 @@ async function getSchedule(): Promise<Tournament[]> {
       )
     `)
     .eq('season_year', 2026)
-    .order('start_date', { ascending: false })
+    .order('start_date', { ascending: true })
 
   if (error) throw error
   return (data as unknown) as Tournament[]
