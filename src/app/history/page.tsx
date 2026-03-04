@@ -62,8 +62,19 @@ async function getHistory(): Promise<Tournament[]> {
   )
 }
 
+async function getAllMembers(): Promise<string[]> {
+  const { data } = await supabase
+    .from('league_members')
+    .select('name')
+    .order('name')
+  return (data ?? []).map((m: { name: string }) => m.name)
+}
+
 export default async function HistoryPage() {
-  const tournaments = await getHistory()
+  const [tournaments, allMembers] = await Promise.all([
+    getHistory(),
+    getAllMembers(),
+  ])
   const completed = tournaments.filter(t => t.status === 'completed')
 
   return (
@@ -82,6 +93,12 @@ export default async function HistoryPage() {
             const sortedPicks = [...tournament.picks].sort((a, b) =>
               isLive ? 0 : b.earnings - a.earnings
             )
+
+            // For in-progress cards, find members who haven't picked yet
+            const pickedNames = new Set(sortedPicks.map(p => p.league_members.name))
+            const unpickedMembers = isLive
+              ? allMembers.filter(name => !pickedNames.has(name))
+              : []
 
             // Dense rank by earnings — only meaningful for completed tournaments
             const uniqueEarnings = [...new Set(sortedPicks.map(p => p.earnings).filter(e => e > 0))]
@@ -153,6 +170,18 @@ export default async function HistoryPage() {
                         </tr>
                       )
                     })}
+                    {unpickedMembers.map((name) => (
+                      <tr key={name} className="hover:bg-stone-50 transition-colors opacity-40">
+                        <td className="px-3 sm:px-5 py-3">
+                          <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-stone-100 text-slate-300 border border-stone-200">
+                            —
+                          </div>
+                        </td>
+                        <td className="px-3 sm:px-5 py-3 font-medium text-slate-900">{name}</td>
+                        <td className="hidden sm:table-cell px-5 py-3 text-slate-300 italic text-xs">Pending</td>
+                        <td className="px-3 sm:px-5 py-3 text-right font-mono font-semibold text-slate-300">—</td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
 
