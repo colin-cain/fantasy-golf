@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import NavLinks from "./components/NavLinks";
+import CountdownBanner from "./components/CountdownBanner";
+import { supabase } from "@/lib/supabase";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,11 +20,19 @@ export const metadata: Metadata = {
   description: "2026 Fantasy Golf League",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { data: next } = await supabase
+    .from('tournaments')
+    .select('name, type, start_date')
+    .neq('status', 'completed')
+    .order('start_date', { ascending: true })
+    .limit(1)
+    .single()
+
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
@@ -32,6 +42,13 @@ export default function RootLayout({
             <NavLinks />
           </div>
         </nav>
+        {next && (
+          <CountdownBanner
+            name={next.name}
+            type={next.type}
+            startDate={next.start_date}
+          />
+        )}
         {children}
       </body>
     </html>
