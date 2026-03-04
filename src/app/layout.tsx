@@ -49,7 +49,16 @@ export default async function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <nav className="bg-white border-b border-stone-200 px-4">
           <div className="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between sm:h-14 py-3 sm:py-0 gap-2.5 sm:gap-0">
-            <span className="text-sm font-bold text-slate-900 tracking-tight">⛳ FGL&apos;26</span>
+
+            {/* Logo lockup */}
+            <div className="flex items-center gap-3">
+              <span className="text-lg font-black tracking-tight text-slate-900 uppercase">⛳ FGL &apos;26</span>
+              <div className="hidden sm:flex flex-col items-start border-l border-stone-200 pl-3">
+                <span className="text-[9px] uppercase tracking-widest text-slate-400 font-medium leading-none mb-0.5">Presented by</span>
+                <span className="text-[11px] font-bold text-orange-500 tracking-tight leading-none">Diners, Drive-Ins & Dives</span>
+              </div>
+            </div>
+
             <NavLinks />
           </div>
         </nav>
