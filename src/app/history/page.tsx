@@ -6,6 +6,11 @@ type Pick = {
   league_members: { name: string }
 }
 
+type DraftSlot = {
+  pick_position: number
+  league_members: { name: string }
+}
+
 type Tournament = {
   id: string
   name: string
@@ -13,6 +18,7 @@ type Tournament = {
   start_date: string
   status: string
   picks: Pick[]
+  draft_order: DraftSlot[]
 }
 
 const TYPE_STYLES: Record<string, string> = {
@@ -46,6 +52,10 @@ async function getHistory(): Promise<Tournament[]> {
       picks(
         golfer_name,
         earnings,
+        league_members(name)
+      ),
+      draft_order(
+        pick_position,
         league_members(name)
       )
     `)
@@ -90,14 +100,23 @@ export default async function HistoryPage() {
           {tournaments.map((tournament) => {
             const isLive = tournament.status === 'in_progress'
 
-            const sortedPicks = [...tournament.picks].sort((a, b) =>
-              isLive ? 0 : b.earnings - a.earnings
+            // Build a name → pick_position map from draft_order
+            const draftPositions = new Map(
+              tournament.draft_order.map(d => [d.league_members.name, d.pick_position])
             )
 
-            // For in-progress cards, find members who haven't picked yet
+            const sortedPicks = [...tournament.picks].sort((a, b) =>
+              isLive
+                ? (draftPositions.get(a.league_members.name) ?? 99) - (draftPositions.get(b.league_members.name) ?? 99)
+                : b.earnings - a.earnings
+            )
+
+            // For in-progress cards, find members who haven't picked yet, in draft order
             const pickedNames = new Set(sortedPicks.map(p => p.league_members.name))
             const unpickedMembers = isLive
-              ? allMembers.filter(name => !pickedNames.has(name))
+              ? allMembers
+                  .filter(name => !pickedNames.has(name))
+                  .sort((a, b) => (draftPositions.get(a) ?? 99) - (draftPositions.get(b) ?? 99))
               : []
 
             // Dense rank by earnings — only meaningful for completed tournaments
