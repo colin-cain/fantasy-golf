@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import TournamentStatusLabel from '@/app/components/TournamentStatusLabel'
 
 type Pick = {
   golfer_name: string
@@ -16,6 +17,7 @@ type Tournament = {
   name: string
   type: string
   start_date: string
+  tee_time: string | null
   status: string
   picks: Pick[]
   draft_order: DraftSlot[]
@@ -48,7 +50,7 @@ async function getHistory(): Promise<Tournament[]> {
   const { data, error } = await supabase
     .from('tournaments')
     .select(`
-      id, name, type, start_date, status,
+      id, name, type, start_date, tee_time, status,
       picks(
         golfer_name,
         earnings,
@@ -136,10 +138,10 @@ export default async function HistoryPage() {
                   isLive ? 'border-emerald-100 bg-emerald-50/40' : 'border-stone-100'
                 }`}>
                   {isLive && (
-                    <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 mb-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      In Progress
-                    </span>
+                    <TournamentStatusLabel
+                      startDate={tournament.start_date}
+                      teeTime={tournament.tee_time}
+                    />
                   )}
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
