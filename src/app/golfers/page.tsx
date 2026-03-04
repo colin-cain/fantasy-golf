@@ -27,7 +27,7 @@ async function getUsedGolfers(): Promise<MemberUsed[]> {
 
   const byMember: Record<string, { golfer: string; tournament: string }[]> = {}
 
-  for (const pick of data as UsedPick[]) {
+  for (const pick of (data as unknown) as UsedPick[]) {
     const name = pick.league_members.name
     if (!byMember[name]) byMember[name] = []
     byMember[name].push({

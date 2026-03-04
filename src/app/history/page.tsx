@@ -41,7 +41,7 @@ async function getHistory(): Promise<Tournament[]> {
     .order('start_date', { ascending: true })
 
   if (error) throw error
-  return data as Tournament[]
+  return (data as unknown) as Tournament[]
 }
 
 export default async function HistoryPage() {
