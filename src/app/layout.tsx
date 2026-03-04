@@ -52,13 +52,7 @@ export default async function RootLayout({
           <div className="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between sm:h-14 py-3 sm:py-0 gap-2.5 sm:gap-0">
 
             {/* Logo lockup */}
-            <div className="flex items-center gap-3">
-              <FGLLogo className="h-10 w-auto" />
-              <div className="hidden sm:flex flex-col items-start border-l border-stone-200 pl-3">
-                <span className="text-[9px] uppercase tracking-widest text-slate-400 font-medium leading-none mb-0.5">Presented by</span>
-                <span className="text-[11px] font-bold text-orange-500 tracking-tight leading-none">Diners, Drive-Ins & Dives</span>
-              </div>
-            </div>
+            <FGLLogo className="h-9 w-auto" />
 
             <NavLinks />
           </div>
