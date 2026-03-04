@@ -25,14 +25,23 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Only show countdown for the next upcoming (not yet started) tournament
-  const { data: next } = await supabase
+  // Prefer an in-progress tournament; fall back to next upcoming
+  const { data: live } = await supabase
+    .from('tournaments')
+    .select('name, type, start_date, tee_time')
+    .eq('status', 'in_progress')
+    .limit(1)
+    .single()
+
+  const { data: next } = !live ? await supabase
     .from('tournaments')
     .select('name, type, start_date, tee_time')
     .eq('status', 'upcoming')
     .order('start_date', { ascending: true })
     .limit(1)
-    .single()
+    .single() : { data: null }
+
+  const banner = live ?? next
 
   return (
     <html lang="en">
@@ -43,12 +52,13 @@ export default async function RootLayout({
             <NavLinks />
           </div>
         </nav>
-        {next && (
+        {banner && (
           <CountdownBanner
-            name={next.name}
-            type={next.type}
-            startDate={next.start_date}
-            teeTime={next.tee_time ?? null}
+            name={banner.name}
+            type={banner.type}
+            startDate={banner.start_date}
+            teeTime={banner.tee_time ?? null}
+            inProgress={!!live}
           />
         )}
         {children}

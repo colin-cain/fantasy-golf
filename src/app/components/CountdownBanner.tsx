@@ -5,8 +5,9 @@ import { useEffect, useState } from 'react'
 type Props = {
   name: string
   type: string
-  startDate: string   // "YYYY-MM-DD" — fallback if no tee_time
+  startDate: string      // "YYYY-MM-DD" — fallback if no tee_time
   teeTime: string | null // ISO 8601 UTC timestamp, e.g. "2026-03-05T12:40:00Z"
+  inProgress?: boolean   // true when the tournament is currently underway
 }
 
 const TYPE_STYLES: Record<string, string> = {
@@ -42,19 +43,21 @@ function pad(n: number) {
   return String(n).padStart(2, '0')
 }
 
-export default function CountdownBanner({ name, type, startDate, teeTime }: Props) {
+export default function CountdownBanner({ name, type, startDate, teeTime, inProgress = false }: Props) {
   const target = resolveTarget(startDate, teeTime)
   const [timeLeft, setTimeLeft] = useState<ReturnType<typeof getTimeLeft>>(null)
 
   useEffect(() => {
+    if (inProgress) return
     setTimeLeft(getTimeLeft(target))
     const id = setInterval(() => setTimeLeft(getTimeLeft(target)), 1_000)
     return () => clearInterval(id)
-  }, [target])
+  }, [target, inProgress])
 
-  if (!timeLeft) return null
+  // For upcoming tournaments, hide until tee time hasn't passed
+  if (!inProgress && !timeLeft) return null
 
-  const { days, hours, minutes, seconds } = timeLeft
+  const { days, hours, minutes, seconds } = timeLeft ?? {}
 
   return (
     <div className="bg-white border-b border-stone-200">
@@ -62,31 +65,40 @@ export default function CountdownBanner({ name, type, startDate, teeTime }: Prop
 
         {/* Left — label + tournament name + type badge */}
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[10px] uppercase tracking-widest text-slate-400 font-medium">
-            Next up
-          </span>
+          {inProgress ? (
+            <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-medium text-emerald-600">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              In Progress
+            </span>
+          ) : (
+            <span className="text-[10px] uppercase tracking-widest text-slate-400 font-medium">
+              Next up
+            </span>
+          )}
           <span className="text-sm font-semibold text-slate-800">{name}</span>
           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_STYLES[type] ?? ''}`}>
             {TYPE_LABELS[type] ?? type}
           </span>
         </div>
 
-        {/* Right — live countdown */}
-        <div className="flex items-center gap-2.5 font-mono">
-          {[
-            { value: days,    unit: 'd' },
-            { value: hours,   unit: 'h' },
-            { value: minutes, unit: 'm' },
-            { value: seconds, unit: 's' },
-          ].map(({ value, unit }) => (
-            <div key={unit} className="flex items-baseline gap-0.5">
-              <span className="text-sm font-bold text-slate-900 tabular-nums">
-                {pad(value)}
-              </span>
-              <span className="text-[11px] text-slate-400">{unit}</span>
-            </div>
-          ))}
-        </div>
+        {/* Right — countdown or in-progress indicator */}
+        {!inProgress && days !== undefined && (
+          <div className="flex items-center gap-2.5 font-mono">
+            {[
+              { value: days,    unit: 'd' },
+              { value: hours!,  unit: 'h' },
+              { value: minutes!,unit: 'm' },
+              { value: seconds!,unit: 's' },
+            ].map(({ value, unit }) => (
+              <div key={unit} className="flex items-baseline gap-0.5">
+                <span className="text-sm font-bold text-slate-900 tabular-nums">
+                  {pad(value)}
+                </span>
+                <span className="text-[11px] text-slate-400">{unit}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
       </div>
     </div>
