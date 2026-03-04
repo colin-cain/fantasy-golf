@@ -67,7 +67,7 @@ async function getChartData(): Promise<{ chartData: ChartPoint[]; weeklyData: Ch
   })
 
   // Weekly: each tournament's individual earnings (not cumulative)
-  const weeklyData: WeeklyPoint[] = tournaments.map((t, i) => ({
+  const weeklyData: ChartPoint[] = tournaments.map((t, i) => ({
     label: `T${i + 1}`,
     tournament: t.name,
     ...Object.fromEntries(
