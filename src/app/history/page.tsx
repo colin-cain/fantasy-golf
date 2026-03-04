@@ -26,6 +26,17 @@ const TYPE_LABELS: Record<string, string> = {
   regular:   'Regular',
 }
 
+const RANK_BADGE = [
+  'bg-amber-400 text-white',                             // 1st — gold
+  'bg-slate-300 text-slate-600',                         // 2nd — silver
+  'bg-orange-800 text-orange-100',                       // 3rd — bronze
+  'bg-stone-100 text-slate-400 border border-stone-200', // 4th+
+]
+
+function getRankBadge(rank: number) {
+  return RANK_BADGE[rank] ?? RANK_BADGE[3]
+}
+
 async function getHistory(): Promise<Tournament[]> {
   const { data, error } = await supabase
     .from('tournaments')
@@ -59,7 +70,11 @@ export default async function HistoryPage() {
         <div className="flex flex-col gap-5">
           {tournaments.map((tournament) => {
             const sortedPicks = [...tournament.picks].sort((a, b) => b.earnings - a.earnings)
-            const winner = sortedPicks[0]
+
+            // Dense rank by earnings — ties share the same rank, $0 earners get null
+            const uniqueEarnings = [...new Set(sortedPicks.map(p => p.earnings).filter(e => e > 0))]
+              .sort((a, b) => b - a)
+            const earningsRank = new Map(uniqueEarnings.map((e, i) => [e, i]))
 
             return (
               <div key={tournament.id} className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
@@ -83,6 +98,7 @@ export default async function HistoryPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-stone-50 border-b border-stone-100 text-xs uppercase tracking-widest text-slate-400">
+                      <th className="px-5 py-2.5 text-left w-14">#</th>
                       <th className="px-5 py-2.5 text-left">Member</th>
                       <th className="px-5 py-2.5 text-left">Golfer</th>
                       <th className="px-5 py-2.5 text-right">Earnings</th>
@@ -90,15 +106,15 @@ export default async function HistoryPage() {
                   </thead>
                   <tbody className="divide-y divide-stone-100">
                     {sortedPicks.map((pick) => {
-                      const isWinner = pick.earnings === winner.earnings && winner.earnings > 0
+                      const rank = pick.earnings > 0 ? earningsRank.get(pick.earnings) ?? 3 : null
                       return (
                         <tr key={pick.league_members.name} className="hover:bg-stone-50 transition-colors">
-                          <td className="px-5 py-3 font-medium text-slate-900">
-                            <span className="flex items-center gap-2">
-                              {pick.league_members.name}
-                              {isWinner && <span className="text-orange-500">🏆</span>}
-                            </span>
+                          <td className="px-5 py-3">
+                            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${rank !== null ? getRankBadge(rank) : 'bg-stone-100 text-slate-300 border border-stone-200'}`}>
+                              {rank !== null ? rank + 1 : '—'}
+                            </div>
                           </td>
+                          <td className="px-5 py-3 font-medium text-slate-900">{pick.league_members.name}</td>
                           <td className="px-5 py-3 text-slate-600">{pick.golfer_name}</td>
                           <td className={`px-5 py-3 text-right font-mono font-semibold ${pick.earnings > 0 ? 'text-emerald-700' : 'text-slate-300'}`}>
                             {pick.earnings > 0 ? `$${pick.earnings.toLocaleString()}` : '—'}
