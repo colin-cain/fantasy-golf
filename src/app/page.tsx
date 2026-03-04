@@ -1,9 +1,18 @@
 import { supabase } from '@/lib/supabase'
+import StandingsChart, { ChartPoint } from './components/StandingsChart'
 
 type Standing = {
   name: string
   total_earnings: number
 }
+
+type TournamentWithPicks = {
+  name: string
+  start_date: string
+  picks: { earnings: number; league_members: { name: string } }[]
+}
+
+const MEMBERS = ['Ben', 'Ty', 'JJ', 'Jake', 'Chris', 'Colin']
 
 async function getStandings(): Promise<Standing[]> {
   const { data, error } = await supabase
@@ -23,6 +32,41 @@ async function getStandings(): Promise<Standing[]> {
     .sort((a, b) => b.total_earnings - a.total_earnings)
 }
 
+async function getChartData(): Promise<{ chartData: ChartPoint[]; members: string[] }> {
+  const { data, error } = await supabase
+    .from('tournaments')
+    .select(`
+      name, start_date,
+      picks(
+        earnings,
+        league_members(name)
+      )
+    `)
+    .eq('status', 'completed')
+    .order('start_date', { ascending: true })
+
+  if (error) throw error
+
+  const tournaments = (data as unknown) as TournamentWithPicks[]
+
+  const cumulative: Record<string, number> = {}
+  MEMBERS.forEach(m => (cumulative[m] = 0))
+
+  const chartData: ChartPoint[] = tournaments.map((t, i) => {
+    for (const pick of t.picks) {
+      const name = pick.league_members.name
+      cumulative[name] = (cumulative[name] ?? 0) + pick.earnings
+    }
+    return {
+      label: `T${i + 1}`,
+      tournament: t.name,
+      ...Object.fromEntries(MEMBERS.map(m => [m, cumulative[m] ?? 0])),
+    }
+  })
+
+  return { chartData, members: MEMBERS }
+}
+
 const RANK_BADGE = [
   'bg-amber-400 text-white',                               // 1st — gold
   'bg-slate-300 text-slate-600',                           // 2nd — silver
@@ -33,7 +77,10 @@ const RANK_BADGE = [
 ]
 
 export default async function HomePage() {
-  const standings = await getStandings()
+  const [standings, { chartData, members }] = await Promise.all([
+    getStandings(),
+    getChartData(),
+  ])
   const maxEarnings = standings[0]?.total_earnings ?? 1
 
   return (
@@ -45,6 +92,15 @@ export default async function HomePage() {
           <p className="text-slate-500 text-sm mt-1">2026 · based on PGA Tour prize earnings</p>
         </div>
 
+        {/* Earnings over time chart */}
+        {chartData.length > 0 && (
+          <div className="bg-white rounded-xl border border-stone-200 shadow-sm px-5 pt-5 pb-3 mb-5">
+            <p className="text-xs uppercase tracking-widest text-slate-400 mb-4">Cumulative Earnings</p>
+            <StandingsChart data={chartData} members={members} />
+          </div>
+        )}
+
+        {/* Standings table */}
         <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
             <thead>
