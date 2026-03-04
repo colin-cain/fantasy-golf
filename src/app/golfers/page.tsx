@@ -41,9 +41,18 @@ async function getUsedGolfers(): Promise<MemberUsed[]> {
     .map((member) => ({ member, picks: byMember[member] }))
 }
 
+const NUMBER_WORDS = ['zero','one','two','three','four','five','six','seven',
+  'eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen',
+  'sixteen','seventeen','eighteen','nineteen','twenty']
+
 export default async function GolfersPage() {
   const members = await getUsedGolfers()
-  const totalUsed = members.reduce((sum, m) => sum + m.picks.length, 0)
+
+  // Count distinct completed tournaments from the picks data
+  const completedCount = new Set(
+    members.flatMap(m => m.picks.map(p => p.tournament))
+  ).size
+  const countWord = NUMBER_WORDS[completedCount] ?? String(completedCount)
 
   return (
     <main className="min-h-screen bg-stone-100">
@@ -51,7 +60,9 @@ export default async function GolfersPage() {
 
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Pick History</h1>
-          <p className="text-slate-500 text-sm mt-1">2026 · Picks through five tournaments</p>
+          <p className="text-slate-500 text-sm mt-1">
+            2026 · Picks through {countWord} tournament{completedCount !== 1 ? 's' : ''}
+          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
