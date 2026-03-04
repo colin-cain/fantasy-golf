@@ -5,55 +5,83 @@ export const dynamic = 'force-dynamic'
 type UsedPick = {
   golfer_name: string
   league_members: { name: string }
-  tournaments: { name: string; start_date: string }
+  tournaments: { id: string; name: string; start_date: string }
+}
+
+type MemberPick = {
+  golfer: string
+  tournament: string
+  pending?: boolean
 }
 
 type MemberUsed = {
   member: string
-  picks: { golfer: string; tournament: string }[]
+  picks: MemberPick[]
 }
 
 const MEMBER_ORDER = ['Ben', 'Ty', 'JJ', 'Jake', 'Chris', 'Colin']
-
-async function getUsedGolfers(): Promise<MemberUsed[]> {
-  const { data, error } = await supabase
-    .from('picks')
-    .select(`
-      golfer_name,
-      league_members(name),
-      tournaments(name, start_date)
-    `)
-    .order('start_date', { referencedTable: 'tournaments', ascending: true })
-
-  if (error) throw error
-
-  const byMember: Record<string, { golfer: string; tournament: string }[]> = {}
-
-  for (const pick of (data as unknown) as UsedPick[]) {
-    const name = pick.league_members.name
-    if (!byMember[name]) byMember[name] = []
-    byMember[name].push({
-      golfer: pick.golfer_name,
-      tournament: pick.tournaments.name,
-    })
-  }
-
-  return MEMBER_ORDER
-    .filter((m) => byMember[m])
-    .map((member) => ({ member, picks: byMember[member] }))
-}
 
 const NUMBER_WORDS = ['zero','one','two','three','four','five','six','seven',
   'eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen',
   'sixteen','seventeen','eighteen','nineteen','twenty']
 
-export default async function GolfersPage() {
-  const members = await getUsedGolfers()
+async function getData(): Promise<{ members: MemberUsed[]; completedCount: number }> {
+  const [picksResult, inProgressResult] = await Promise.all([
+    supabase
+      .from('picks')
+      .select(`
+        golfer_name,
+        league_members(name),
+        tournaments(id, name, start_date)
+      `)
+      .order('start_date', { referencedTable: 'tournaments', ascending: true }),
+    supabase
+      .from('tournaments')
+      .select('id, name')
+      .eq('status', 'in_progress')
+      .limit(1)
+      .single(),
+  ])
 
-  // Count distinct completed tournaments from the picks data
+  if (picksResult.error) throw picksResult.error
+
+  const byMember: Record<string, MemberPick[]> = {}
+  const pickedTournamentIds: Record<string, Set<string>> = {}
+
+  for (const pick of (picksResult.data as unknown) as UsedPick[]) {
+    const name = pick.league_members.name
+    if (!byMember[name]) {
+      byMember[name] = []
+      pickedTournamentIds[name] = new Set()
+    }
+    byMember[name].push({ golfer: pick.golfer_name, tournament: pick.tournaments.name })
+    pickedTournamentIds[name].add(pick.tournaments.id)
+  }
+
+  const inProgress = inProgressResult.data ?? null
+
+  // Count distinct tournaments from actual (non-pending) picks
   const completedCount = new Set(
-    members.flatMap(m => m.picks.map(p => p.tournament))
+    Object.values(byMember).flat().map(p => p.tournament)
   ).size
+
+  const members = MEMBER_ORDER
+    .map(member => ({
+      member,
+      picks: [
+        ...(byMember[member] ?? []),
+        ...(inProgress && !pickedTournamentIds[member]?.has(inProgress.id)
+          ? [{ golfer: 'Pending', tournament: inProgress.name, pending: true }]
+          : []),
+      ],
+    }))
+    .filter(m => m.picks.length > 0)
+
+  return { members, completedCount }
+}
+
+export default async function GolfersPage() {
+  const { members, completedCount } = await getData()
   const countWord = NUMBER_WORDS[completedCount] ?? String(completedCount)
 
   return (
@@ -68,27 +96,35 @@ export default async function GolfersPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          {members.map(({ member, picks }) => (
-            <div key={member} className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
+          {members.map(({ member, picks }) => {
+            const usedCount = picks.filter(p => !p.pending).length
+            return (
+              <div key={member} className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
 
-              {/* Member header */}
-              <div className="px-5 py-3 flex items-center justify-between border-b border-stone-100">
-                <h2 className="font-semibold text-slate-900">{member}</h2>
-                <span className="text-xs text-slate-400">{picks.length} used</span>
+                {/* Member header */}
+                <div className="px-5 py-3 flex items-center justify-between border-b border-stone-100">
+                  <h2 className="font-semibold text-slate-900">{member}</h2>
+                  <span className="text-xs text-slate-400">{usedCount} used</span>
+                </div>
+
+                {/* Picks list */}
+                <ul className="divide-y divide-stone-100">
+                  {picks.map(({ golfer, tournament, pending }) => (
+                    <li
+                      key={tournament}
+                      className={`px-5 py-3 flex items-center justify-between hover:bg-stone-50 transition-colors ${pending ? 'opacity-50' : ''}`}
+                    >
+                      <span className={`text-sm font-medium ${pending ? 'text-slate-400 italic' : 'text-slate-900'}`}>
+                        {golfer}
+                      </span>
+                      <span className="text-xs text-slate-400 ml-4 text-right">{tournament}</span>
+                    </li>
+                  ))}
+                </ul>
+
               </div>
-
-              {/* Used golfers list */}
-              <ul className="divide-y divide-stone-100">
-                {picks.map(({ golfer, tournament }) => (
-                  <li key={golfer} className="px-5 py-3 flex items-center justify-between hover:bg-stone-50 transition-colors">
-                    <span className="text-sm font-medium text-slate-900">{golfer}</span>
-                    <span className="text-xs text-slate-400 ml-4 text-right">{tournament}</span>
-                  </li>
-                ))}
-              </ul>
-
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </main>
