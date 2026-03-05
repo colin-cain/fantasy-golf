@@ -134,7 +134,7 @@ async function getLiveData(): Promise<LiveData> {
     .limit(1)
     .single()
 
-  const livePicks: LivePick[] = (picks as { golfer_name: string; league_members: { name: string } }[]).map(p => {
+  const livePicks: LivePick[] = (picks as unknown as { golfer_name: string; league_members: { name: string } }[]).map(p => {
     const live = cacheMap[p.golfer_name]
     return {
       member:   p.league_members.name,
