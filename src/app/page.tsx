@@ -145,7 +145,6 @@ async function getLiveData(): Promise<LiveData> {
       round:    live?.round    ?? null,
     }
   }).sort((a, b) => {
-    // Sort by position (numerically), with non-numeric positions last
     const posA = parseInt(a.position?.replace('T', '') ?? '999')
     const posB = parseInt(b.position?.replace('T', '') ?? '999')
     return posA - posB
@@ -178,70 +177,73 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen bg-stone-100">
+
+      {/* ── Full-width live banner ── only shown during an in-progress tournament */}
+      {liveData && (
+        <div className="w-full bg-slate-900 border-b border-slate-800">
+          <div className="px-4 py-3.5">
+
+            {/* Header row */}
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
+              <span className="text-emerald-400 text-xs font-semibold uppercase tracking-widest">Live</span>
+              <span className="text-slate-600 text-xs">·</span>
+              <span className="text-slate-300 text-xs font-medium">{liveData.tournamentName}</span>
+              {liveData.round && (
+                <>
+                  <span className="text-slate-600 text-xs">·</span>
+                  <span className="text-slate-500 text-xs">Round {liveData.round}</span>
+                </>
+              )}
+            </div>
+
+            {/* Pick chips — horizontally scrollable */}
+            <div
+              className="flex gap-2.5 overflow-x-auto pb-0.5"
+              style={{ scrollbarWidth: 'none' }}
+            >
+              {liveData.picks.map(({ member, golfer, position, total, thru }) => {
+                const scoreColor =
+                  total?.startsWith('-') ? 'text-emerald-400' :
+                  total === 'E'          ? 'text-slate-300'   :
+                  total                  ? 'text-red-400'     :
+                                           'text-slate-600'
+                return (
+                  <div key={member} className="flex-none bg-slate-800 rounded-lg px-3.5 py-2.5 min-w-[136px]">
+                    {/* Row 1: position · golfer · score */}
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-slate-500 text-xs w-6 flex-shrink-0 text-center">
+                        {position ?? '–'}
+                      </span>
+                      <span className="text-white text-xs font-semibold flex-1 truncate min-w-0">
+                        {golfer}
+                      </span>
+                      <span className={`font-mono text-sm font-bold flex-shrink-0 ${scoreColor}`}>
+                        {total ?? '–'}
+                      </span>
+                    </div>
+                    {/* Row 2: spacer · member · thru */}
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="w-6 flex-shrink-0" />
+                      <span className="text-slate-500 text-xs flex-1">{member}</span>
+                      <span className="font-mono text-slate-600 text-xs flex-shrink-0">{thru ?? '–'}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ── Main content ── */}
       <div className="max-w-2xl mx-auto px-4 py-12">
 
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Season Standings</h1>
           <p className="text-slate-500 text-sm mt-1">2026 · Based on PGA Tour prize earnings</p>
         </div>
-
-        {/* Live scores card — only shown during an in-progress tournament */}
-        {liveData && (
-          <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden mb-5">
-            {/* Header */}
-            <div className="px-5 py-3 border-b border-stone-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-xs uppercase tracking-widest text-slate-500 font-medium">
-                  This Week
-                </span>
-                <span className="text-xs text-slate-400">· {liveData.tournamentName}</span>
-              </div>
-              {liveData.round && (
-                <span className="text-xs text-slate-400">Round {liveData.round}</span>
-              )}
-            </div>
-
-            {/* Pick rows */}
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-stone-50 border-b border-stone-100 text-xs uppercase tracking-widest text-slate-400">
-                  <th className="px-5 py-2.5 text-left">Player</th>
-                  <th className="px-5 py-2.5 text-left">Golfer</th>
-                  <th className="px-5 py-2.5 text-center">Pos</th>
-                  <th className="px-5 py-2.5 text-center">Score</th>
-                  <th className="px-5 py-2.5 text-center">Thru</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100">
-                {liveData.picks.map(({ member, golfer, position, total, thru }) => (
-                  <tr key={member} className="hover:bg-stone-50 transition-colors">
-                    <td className="px-5 py-3 font-medium text-slate-800">{member}</td>
-                    <td className="px-5 py-3 text-slate-600">{golfer}</td>
-                    <td className="px-5 py-3 text-center">
-                      {position
-                        ? <span className="font-mono text-sm font-semibold text-slate-700">{position}</span>
-                        : <span className="text-slate-300">–</span>
-                      }
-                    </td>
-                    <td className="px-5 py-3 text-center">
-                      {total
-                        ? <span className={`font-mono text-sm font-semibold ${
-                            total.startsWith('-') ? 'text-emerald-600' :
-                            total === 'E' ? 'text-slate-600' : 'text-red-500'
-                          }`}>{total}</span>
-                        : <span className="text-slate-300">–</span>
-                      }
-                    </td>
-                    <td className="px-5 py-3 text-center font-mono text-xs text-slate-400">
-                      {thru ?? '–'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
 
         {/* Standings table */}
         <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
