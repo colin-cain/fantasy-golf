@@ -247,14 +247,13 @@ export default async function HomePage() {
             <colgroup>
               <col className="w-12" />
               <col />
-              <col className="w-48" />
               {live && <col className="w-32" />}
               {live && <col className="w-44" />}
             </colgroup>
             <thead>
               {live && (
                 <tr className="bg-stone-50 text-xs uppercase tracking-widest text-slate-400">
-                  <th colSpan={3} />
+                  <th colSpan={2} />
                   <th colSpan={2} className="px-5 pt-3 pb-0 text-center border-l border-stone-200 italic">
                     Projected
                   </th>
@@ -262,8 +261,12 @@ export default async function HomePage() {
               )}
               <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
                 <th className="px-4 py-3 text-left">#</th>
-                <th className="px-4 py-3 text-left">Player</th>
-                <th className="px-4 py-3 text-right">Cumulative Earnings</th>
+                <th className="px-4 py-3">
+                  <div className="flex justify-between items-center">
+                    <span>Player</span>
+                    <span>Cumulative Earnings</span>
+                  </div>
+                </th>
                 {live && <th className="px-4 py-3 text-right italic border-l border-stone-200">Current Week</th>}
                 {live && <th className="px-4 py-3 text-right italic">Cumulative Earnings</th>}
               </tr>
@@ -284,8 +287,13 @@ export default async function HomePage() {
                         {index + 1}
                       </div>
                     </td>
-                    <td className="px-4 py-3 font-medium text-slate-900">
-                      {member.name}
+                    <td className="px-4 py-3">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium text-slate-900">{member.name}</span>
+                        <span className="font-mono text-slate-900 font-semibold">
+                          ${member.total_earnings.toLocaleString()}
+                        </span>
+                      </div>
                       {!live && (
                         <div className="mt-1.5 h-1 rounded-full bg-stone-100 overflow-hidden">
                           <div
@@ -294,11 +302,6 @@ export default async function HomePage() {
                           />
                         </div>
                       )}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <span className="font-mono text-slate-900 font-semibold">
-                        ${member.total_earnings.toLocaleString()}
-                      </span>
                     </td>
                     {live && (
                       <td className="px-4 py-3 text-right font-mono text-slate-400 text-xs italic border-l border-stone-200">
