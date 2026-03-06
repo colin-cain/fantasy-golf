@@ -134,12 +134,14 @@ export async function GET(req: NextRequest) {
     total: string
     thru: string
     currentRound: unknown
+    teeTime?: string
   }) => ({
     golfer_name: `${row.firstName} ${row.lastName}`,
     position:    row.position,
     total:       row.total,
     thru:        row.thru,
     round:       parseMongo(row.currentRound),
+    tee_time:    row.teeTime ?? null,
     tournament_id: tournament.id,
     last_updated:  new Date().toISOString(),
   }))
@@ -161,6 +163,5 @@ export async function GET(req: NextRequest) {
     golfersUpdated: rows.length,
     round: parseMongo(lb.roundId),
     roundStatus: lb.roundStatus,
-    _debug_sampleRow: lb.leaderboardRows[0], // TODO: remove after inspecting available fields
   })
 }

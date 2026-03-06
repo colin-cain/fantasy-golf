@@ -6,6 +6,7 @@ type TickerPick = {
   position: string | null
   total: string | null
   thru: string | null
+  teeTime: string | null
 }
 
 type Props = {
@@ -61,16 +62,18 @@ export default function TournamentBanner({ name, type, startDate, teeTime, inPro
           {/* Scrolling ticker track */}
           <div className="flex-1 overflow-hidden flex items-center">
             <div className="fgl-ticker-track flex items-stretch whitespace-nowrap">
-              {[...picks, ...picks].map(({ member, golfer, position, total, thru }, i) => {
+              {[...picks, ...picks].map(({ member, golfer, position, total, thru, teeTime }, i) => {
                 const lastName = golfer.split(' ').slice(1).join(' ') || golfer
                 const scoreColor = total?.startsWith('-') ? 'text-red-600' : 'text-zinc-900'
+                const notStarted = !thru || thru === '0'
+                const thruDisplay = notStarted ? (teeTime ?? '–') : thru
                 return [
                   <span key={`item-${i}`} className="inline-flex items-center gap-2 px-5">
                     <span className="font-mono text-zinc-400 text-xs">{position ?? '–'}</span>
                     <span className="text-slate-800 text-xs font-semibold">{lastName}</span>
                     <span className="text-zinc-500 text-xs font-medium">({member})</span>
                     <span className={`font-mono font-bold text-xs ${scoreColor}`}>{total ?? '–'}</span>
-                    <span className="text-zinc-400 text-xs">{(!thru || thru === '0') ? '–' : thru}</span>
+                    <span className="text-zinc-400 text-xs">{thruDisplay}</span>
                   </span>,
                   <span key={`sep-${i}`} className="inline-block w-px h-4 bg-stone-200 self-center flex-shrink-0" />,
                 ]
