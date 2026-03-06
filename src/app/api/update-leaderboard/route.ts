@@ -127,11 +127,16 @@ export async function GET(req: NextRequest) {
     const scheduleData = await scheduleRes.json()
 
     // Score entries by significant-word overlap to find the best match.
-    // Threshold is adaptive: names with only 1 significant word (e.g. "RBC Heritage",
-    // "3M Open") require score ≥ 1; names with 2+ significant words require score ≥ 2.
+    // Threshold is adaptive: names with only 1 significant word (e.g. "RBC Heritage")
+    // need score ≥ 1; names with 2+ words need score ≥ 2.
+    // Exception: generic words like "open" / "championship" alone are too ambiguous
+    // to match on — keep threshold at 2 for those to avoid false positives.
+    const TOO_COMMON = new Set(['open', 'championship'])
     const ourName  = tournament.name.toLowerCase()
     const ourWords = ourName.split(' ').filter((w: string) => w.length > 3)
-    const minScore = Math.min(2, ourWords.length)
+    const minScore = (ourWords.length === 1 && TOO_COMMON.has(ourWords[0]))
+      ? 2
+      : Math.min(2, ourWords.length)
 
     type ScheduleEntry = { name: string; tournId: string }
     const scored = (scheduleData.schedule as ScheduleEntry[] ?? [])

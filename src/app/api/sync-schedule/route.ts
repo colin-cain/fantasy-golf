@@ -48,13 +48,24 @@ function scoreMatch(dbName: string, apiName: string): number {
 }
 
 /**
- * Adaptive confidence threshold: if a tournament name only has 1 significant word
- * (e.g. "RBC Heritage", "3M Open", "BMW Championship") a score of 1 is the maximum
- * achievable and still constitutes a confident match. Names with 2+ significant
- * words require a score of at least 2 to avoid false positives.
+ * Words so common across PGA Tour event names that matching on them alone tells
+ * us nothing — e.g. "US Open" and "Sony Open in Hawaii" both contain "open".
+ * When a tournament name's only significant word is one of these, we keep the
+ * threshold at 2 (effectively unmatched) rather than lowering it to 1.
+ */
+const TOO_COMMON_WORDS = new Set(['open', 'championship'])
+
+/**
+ * Adaptive confidence threshold.
+ * - Names with 2+ significant words: require score ≥ 2 (standard).
+ * - Names with 1 significant word that is specific (e.g. "Heritage", "Masters"):
+ *   lower threshold to 1 — that single word is distinctive enough.
+ * - Names with 1 significant word that is generic ("open", "championship"):
+ *   keep threshold at 2 — too risky, leave them as unmatched for manual review.
  */
 function minConfidentScore(dbName: string): number {
   const words = dbName.toLowerCase().split(/\s+/).filter(w => w.length > 3)
+  if (words.length === 1 && TOO_COMMON_WORDS.has(words[0])) return 2
   return Math.min(2, words.length)
 }
 
