@@ -23,8 +23,8 @@ export default function NavLinks() {
             href={href}
             className={`text-xs uppercase tracking-widest transition-colors sm:h-14 sm:flex sm:items-center sm:border-b-2 ${
               active
-                ? 'text-orange-600 sm:border-orange-500'
-                : 'text-slate-500 hover:text-orange-600 sm:border-transparent'
+                ? 'text-white sm:border-white'
+                : 'text-white/60 hover:text-white sm:border-transparent'
             }`}
           >
             {label}

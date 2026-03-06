@@ -14,22 +14,6 @@ type TournamentWithPicks = {
   picks: { earnings: number; league_members: { name: string } }[]
 }
 
-type LivePick = {
-  member: string
-  golfer: string
-  position: string | null
-  total: string | null
-  thru: string | null
-  round: number | null
-}
-
-type LiveData = {
-  tournamentName: string
-  round: number | null
-  roundStatus: string | null
-  picks: LivePick[]
-} | null
-
 const MEMBERS = ['Ben', 'Ty', 'JJ', 'Jake', 'Chris', 'Colin']
 
 async function getStandings(): Promise<Standing[]> {
@@ -94,70 +78,6 @@ async function getChartData(): Promise<{ chartData: ChartPoint[]; weeklyData: Ch
   return { chartData, weeklyData, members: MEMBERS }
 }
 
-async function getLiveData(): Promise<LiveData> {
-  // Find in-progress tournament
-  const { data: tournament } = await supabase
-    .from('tournaments')
-    .select('id, name')
-    .eq('status', 'in_progress')
-    .limit(1)
-    .single()
-
-  if (!tournament) return null
-
-  // Get picks for this tournament
-  const { data: picks } = await supabase
-    .from('picks')
-    .select('golfer_name, league_members(name)')
-    .eq('tournament_id', tournament.id)
-
-  if (!picks?.length) return null
-
-  // Get cached leaderboard data for these golfers
-  const golferNames = picks.map((p: { golfer_name: string }) => p.golfer_name)
-  const { data: cache } = await supabase
-    .from('leaderboard_cache')
-    .select('golfer_name, position, total, thru, round')
-    .in('golfer_name', golferNames)
-
-  const cacheMap = Object.fromEntries(
-    (cache ?? []).map((r: { golfer_name: string; position: string; total: string; thru: string; round: number }) =>
-      [r.golfer_name, r]
-    )
-  )
-
-  // Get round/status from any cached row for this tournament
-  const { data: meta } = await supabase
-    .from('leaderboard_cache')
-    .select('round')
-    .eq('tournament_id', tournament.id)
-    .limit(1)
-    .single()
-
-  const livePicks: LivePick[] = (picks as unknown as { golfer_name: string; league_members: { name: string } }[]).map(p => {
-    const live = cacheMap[p.golfer_name]
-    return {
-      member:   p.league_members.name,
-      golfer:   p.golfer_name,
-      position: live?.position ?? null,
-      total:    live?.total    ?? null,
-      thru:     live?.thru     ?? null,
-      round:    live?.round    ?? null,
-    }
-  }).sort((a, b) => {
-    const posA = parseInt(a.position?.replace('T', '') ?? '999')
-    const posB = parseInt(b.position?.replace('T', '') ?? '999')
-    return posA - posB
-  })
-
-  return {
-    tournamentName: tournament.name,
-    round: meta?.round ?? null,
-    roundStatus: null,
-    picks: livePicks,
-  }
-}
-
 const RANK_BADGE = [
   'bg-amber-400 text-white',                               // 1st — gold
   'bg-slate-300 text-slate-600',                           // 2nd — silver
@@ -168,77 +88,15 @@ const RANK_BADGE = [
 ]
 
 export default async function HomePage() {
-  const [standings, { chartData, weeklyData, members }, liveData] = await Promise.all([
+  const [standings, { chartData, weeklyData, members }] = await Promise.all([
     getStandings(),
     getChartData(),
-    getLiveData(),
   ])
   const maxEarnings = standings[0]?.total_earnings ?? 1
 
   return (
     <main className="min-h-screen bg-stone-100">
-
-      {/* ── Full-width live banner ── only shown during an in-progress tournament */}
-      {liveData && (
-        <div className="w-full bg-slate-900 border-b border-slate-800">
-          <div className="px-4 py-3.5">
-
-            {/* Header row */}
-            <div className="flex items-center gap-2 mb-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
-              <span className="text-emerald-400 text-xs font-semibold uppercase tracking-widest">Live</span>
-              <span className="text-slate-600 text-xs">·</span>
-              <span className="text-slate-300 text-xs font-medium">{liveData.tournamentName}</span>
-              {liveData.round && (
-                <>
-                  <span className="text-slate-600 text-xs">·</span>
-                  <span className="text-slate-500 text-xs">Round {liveData.round}</span>
-                </>
-              )}
-            </div>
-
-            {/* Pick chips — horizontally scrollable */}
-            <div
-              className="flex gap-2.5 overflow-x-auto pb-0.5"
-              style={{ scrollbarWidth: 'none' }}
-            >
-              {liveData.picks.map(({ member, golfer, position, total, thru }) => {
-                const scoreColor =
-                  total?.startsWith('-') ? 'text-emerald-400' :
-                  total === 'E'          ? 'text-slate-300'   :
-                  total                  ? 'text-red-400'     :
-                                           'text-slate-600'
-                return (
-                  <div key={member} className="flex-none bg-slate-800 rounded-lg px-3.5 py-2.5 min-w-[136px]">
-                    {/* Row 1: position · golfer · score */}
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-slate-500 text-xs w-6 flex-shrink-0 text-center">
-                        {position ?? '–'}
-                      </span>
-                      <span className="text-white text-xs font-semibold flex-1 truncate min-w-0">
-                        {golfer}
-                      </span>
-                      <span className={`font-mono text-sm font-bold flex-shrink-0 ${scoreColor}`}>
-                        {total ?? '–'}
-                      </span>
-                    </div>
-                    {/* Row 2: spacer · member · thru */}
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="w-6 flex-shrink-0" />
-                      <span className="text-slate-500 text-xs flex-1">{member}</span>
-                      <span className="font-mono text-slate-600 text-xs flex-shrink-0">{thru ?? '–'}</span>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-
-          </div>
-        </div>
-      )}
-
-      {/* ── Main content ── */}
-      <div className="max-w-2xl mx-auto px-4 py-12">
+      <div className="max-w-4xl mx-auto px-4 py-12">
 
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Season Standings</h1>

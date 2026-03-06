@@ -93,7 +93,7 @@ export default async function HistoryPage() {
 
   return (
     <main className="min-h-screen bg-stone-100">
-      <div className="max-w-2xl mx-auto px-4 py-12">
+      <div className="max-w-4xl mx-auto px-4 py-12">
 
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Tournament Results</h1>

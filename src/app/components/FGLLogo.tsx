@@ -4,21 +4,21 @@ type Props = {
 
 export default function FGLLogo({ className = '' }: Props) {
   return (
-    <div className={`inline-flex items-stretch bg-orange-600 rounded-[9px] overflow-hidden ring-1 ring-white/10 ${className}`}>
+    <div className={`inline-flex items-stretch border-[3px] border-white rounded-[9px] overflow-hidden ${className}`}>
 
       {/* FGL — left section */}
       <div className="flex items-center justify-center w-[68px]">
         <span
           className="text-white leading-none"
-          style={{ fontFamily: 'var(--font-bebas)', fontSize: '30px', letterSpacing: '0.08em', paddingTop: '2px' }}
+          style={{ fontFamily: 'var(--font-bebas)', fontSize: '38px', letterSpacing: '0.1em', marginRight: '-0.1em', paddingTop: '5px' }}
         >
           FGL
         </span>
       </div>
 
       {/* Divider with golf ball */}
-      <div className="flex flex-col items-center py-1.5">
-        <div className="w-px flex-1 bg-white/25" />
+      <div className="flex flex-col items-center">
+        <div className="w-0.5 flex-1 bg-white" />
         <div className="my-0.5 flex-shrink-0">
           {/* Golf ball: hex-grid dimple pattern clipped to circle */}
           <svg viewBox="0 0 12 12" width="11" height="11">
@@ -30,65 +30,65 @@ export default function FGLLogo({ className = '' }: Props) {
             <circle cx="6" cy="6" r="5.5" fill="white" />
             <g clipPath="url(#fgl-ball-clip)">
               {/* Row 1 y=1.2 */}
-              <circle cx="3.2" cy="1.2" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="4.6" cy="1.2" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="6.0" cy="1.2" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="7.4" cy="1.2" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="8.8" cy="1.2" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="3.2" cy="1.2" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="4.6" cy="1.2" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="6.0" cy="1.2" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="7.4" cy="1.2" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="8.8" cy="1.2" r="0.5" fill="rgba(0,80,40,0.25)" />
               {/* Row 2 y=2.5 offset */}
-              <circle cx="2.5" cy="2.5" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="3.9" cy="2.5" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="5.3" cy="2.5" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="6.7" cy="2.5" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="8.1" cy="2.5" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="9.5" cy="2.5" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="2.5" cy="2.5" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="3.9" cy="2.5" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="5.3" cy="2.5" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="6.7" cy="2.5" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="8.1" cy="2.5" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="9.5" cy="2.5" r="0.5" fill="rgba(0,80,40,0.25)" />
               {/* Row 3 y=3.8 */}
-              <circle cx="1.8" cy="3.8" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="3.2" cy="3.8" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="4.6" cy="3.8" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="6.0" cy="3.8" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="7.4" cy="3.8" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="8.8" cy="3.8" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="10.2" cy="3.8" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="1.8" cy="3.8" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="3.2" cy="3.8" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="4.6" cy="3.8" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="6.0" cy="3.8" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="7.4" cy="3.8" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="8.8" cy="3.8" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="10.2" cy="3.8" r="0.5" fill="rgba(0,80,40,0.25)" />
               {/* Row 4 y=5.1 offset */}
-              <circle cx="1.1" cy="5.1" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="2.5" cy="5.1" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="3.9" cy="5.1" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="5.3" cy="5.1" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="6.7" cy="5.1" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="8.1" cy="5.1" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="9.5" cy="5.1" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="10.9" cy="5.1" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="1.1" cy="5.1" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="2.5" cy="5.1" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="3.9" cy="5.1" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="5.3" cy="5.1" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="6.7" cy="5.1" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="8.1" cy="5.1" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="9.5" cy="5.1" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="10.9" cy="5.1" r="0.5" fill="rgba(0,80,40,0.25)" />
               {/* Row 5 y=6.4 */}
-              <circle cx="1.8" cy="6.4" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="3.2" cy="6.4" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="4.6" cy="6.4" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="6.0" cy="6.4" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="7.4" cy="6.4" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="8.8" cy="6.4" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="10.2" cy="6.4" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="1.8" cy="6.4" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="3.2" cy="6.4" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="4.6" cy="6.4" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="6.0" cy="6.4" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="7.4" cy="6.4" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="8.8" cy="6.4" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="10.2" cy="6.4" r="0.5" fill="rgba(0,80,40,0.25)" />
               {/* Row 6 y=7.7 offset */}
-              <circle cx="2.5" cy="7.7" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="3.9" cy="7.7" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="5.3" cy="7.7" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="6.7" cy="7.7" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="8.1" cy="7.7" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="9.5" cy="7.7" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="2.5" cy="7.7" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="3.9" cy="7.7" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="5.3" cy="7.7" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="6.7" cy="7.7" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="8.1" cy="7.7" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="9.5" cy="7.7" r="0.5" fill="rgba(0,80,40,0.25)" />
               {/* Row 7 y=9.0 */}
-              <circle cx="3.2" cy="9.0" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="4.6" cy="9.0" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="6.0" cy="9.0" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="7.4" cy="9.0" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="8.8" cy="9.0" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="3.2" cy="9.0" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="4.6" cy="9.0" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="6.0" cy="9.0" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="7.4" cy="9.0" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="8.8" cy="9.0" r="0.5" fill="rgba(0,80,40,0.25)" />
               {/* Row 8 y=10.3 offset */}
-              <circle cx="3.9" cy="10.3" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="5.3" cy="10.3" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="6.7" cy="10.3" r="0.5" fill="rgba(234,88,12,0.3)" />
-              <circle cx="8.1" cy="10.3" r="0.5" fill="rgba(234,88,12,0.3)" />
+              <circle cx="3.9" cy="10.3" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="5.3" cy="10.3" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="6.7" cy="10.3" r="0.5" fill="rgba(0,80,40,0.25)" />
+              <circle cx="8.1" cy="10.3" r="0.5" fill="rgba(0,80,40,0.25)" />
             </g>
           </svg>
         </div>
-        <div className="w-px flex-1 bg-white/25" />
+        <div className="w-0.5 flex-1 bg-white" />
       </div>
 
       {/* Triple D logo — right section */}
