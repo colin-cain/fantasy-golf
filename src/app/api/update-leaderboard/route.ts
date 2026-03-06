@@ -161,5 +161,6 @@ export async function GET(req: NextRequest) {
     golfersUpdated: rows.length,
     round: parseMongo(lb.roundId),
     roundStatus: lb.roundStatus,
+    _debug_sampleRow: lb.leaderboardRows[0], // TODO: remove after inspecting available fields
   })
 }
