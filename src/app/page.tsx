@@ -169,18 +169,15 @@ export default async function HomePage() {
     combined:  s.total_earnings + (live?.projections[s.name] ?? 0),
   }))
 
-  // When live, sort by combined (most exciting order); otherwise keep realized sort
-  const sorted = live
-    ? [...enriched].sort((a, b) => b.combined - a.combined)
-    : enriched
+  // Always sort by realized earnings — keeps rank badges and row order stable
+  const sorted = enriched
 
-  const maxValue = live
-    ? (sorted[0]?.combined ?? 1)
-    : (sorted[0]?.total_earnings ?? 1)
+  const maxValue = sorted[0]?.total_earnings ?? 1
 
-  // Realized rank map — used to compute position movement arrows in the live table
-  const realizedOrder = [...enriched].sort((a, b) => b.total_earnings - a.total_earnings)
-  const realizedRankMap = new Map(realizedOrder.map((s, i) => [s.name, i + 1]))
+  // Projected rank map — where each member would land if combined earnings held
+  const projectedRankMap = live
+    ? new Map([...enriched].sort((a, b) => b.combined - a.combined).map((s, i) => [s.name, i + 1]))
+    : new Map<string, number>()
 
   // Add a projected data point to both charts when a live tournament is running
   const completedCount = chartData.length
@@ -255,10 +252,10 @@ export default async function HomePage() {
               {sorted.map((member, index) => {
                 const pct = Math.round((member.total_earnings / maxValue) * 100)
 
-                // Rank movement: realizedRank vs current projected rank (index + 1)
-                const realRank = realizedRankMap.get(member.name) ?? index + 1
-                const projRank = index + 1
-                const delta = realRank - projRank  // positive = moved up
+                // Movement arrow: current realized rank vs where they'd land on combined
+                const realRank = index + 1
+                const projRank = projectedRankMap.get(member.name) ?? realRank
+                const delta = realRank - projRank  // positive = would move up
 
                 return (
                   <tr key={member.name} className="hover:bg-stone-50 transition-colors">
