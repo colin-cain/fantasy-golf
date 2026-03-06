@@ -246,9 +246,9 @@ export default async function HomePage() {
           <table className="w-full text-sm table-fixed">
             <colgroup>
               <col className="w-12" />
-              <col className="w-32" />
               <col />
-              {live && <col className="w-36" />}
+              <col className="w-48" />
+              {live && <col className="w-32" />}
               {live && <col className="w-44" />}
             </colgroup>
             <thead>
@@ -284,11 +284,8 @@ export default async function HomePage() {
                         {index + 1}
                       </div>
                     </td>
-                    <td className="px-4 py-3 font-medium text-slate-900">{member.name}</td>
-                    <td className="px-4 py-3 text-right">
-                      <span className="font-mono text-slate-900 font-semibold">
-                        ${member.total_earnings.toLocaleString()}
-                      </span>
+                    <td className="px-4 py-3 font-medium text-slate-900">
+                      {member.name}
                       {!live && (
                         <div className="mt-1.5 h-1 rounded-full bg-stone-100 overflow-hidden">
                           <div
@@ -297,6 +294,11 @@ export default async function HomePage() {
                           />
                         </div>
                       )}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span className="font-mono text-slate-900 font-semibold">
+                        ${member.total_earnings.toLocaleString()}
+                      </span>
                     </td>
                     {live && (
                       <td className="px-4 py-3 text-right font-mono text-slate-400 text-xs italic border-l border-stone-200">
