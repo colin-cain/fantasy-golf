@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
   // Find the in-progress tournament in our DB
   const { data: tournament, error: tErr } = await supabase
     .from('tournaments')
-    .select('id, name, tee_time')
+    .select('id, name, tee_time, api_tourn_id')
     .eq('status', 'in_progress')
     .limit(1)
     .single()
@@ -95,41 +95,54 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Fetch Slash Golf schedule to find the matching tournId
-  const scheduleRes = await fetch(
-    'https://live-golf-data.p.rapidapi.com/schedule?orgId=1&year=2026',
-    { headers: { 'x-rapidapi-key': RAPIDAPI_KEY, 'x-rapidapi-host': 'live-golf-data.p.rapidapi.com' } }
-  )
-  const scheduleData = await scheduleRes.json()
+  // Resolve the API tournId — use the cached value if we have it, otherwise fetch
+  // the schedule once and save it so every subsequent cron call skips this API hit.
+  let tournId = tournament.api_tourn_id as string | null
+  let apiMatchedName: string | null = null
 
-  // Score every schedule entry by how many significant words (length > 3) it shares
-  // with our tournament name, then pick the best match. This avoids false positives
-  // from common words like "invitational" that appear in many tournament names.
-  const ourName = tournament.name.toLowerCase()
-  const ourWords = ourName.split(' ').filter((w: string) => w.length > 3)
+  if (!tournId) {
+    const scheduleRes = await fetch(
+      'https://live-golf-data.p.rapidapi.com/schedule?orgId=1&year=2026',
+      { headers: { 'x-rapidapi-key': RAPIDAPI_KEY, 'x-rapidapi-host': 'live-golf-data.p.rapidapi.com' } }
+    )
+    const scheduleData = await scheduleRes.json()
 
-  type ScheduleEntry = { name: string; tournId: string }
-  const scored = (scheduleData.schedule as ScheduleEntry[] ?? [])
-    .map(t => {
-      const apiName = t.name.toLowerCase()
-      const score = ourWords.filter((w: string) => apiName.includes(w)).length
-      return { ...t, score }
-    })
-    .filter(t => t.score > 0)
-    .sort((a, b) => b.score - a.score)
+    // Score entries by significant-word overlap to find the best match
+    const ourName = tournament.name.toLowerCase()
+    const ourWords = ourName.split(' ').filter((w: string) => w.length > 3)
 
-  const match = scored[0]
+    type ScheduleEntry = { name: string; tournId: string }
+    const scored = (scheduleData.schedule as ScheduleEntry[] ?? [])
+      .map(t => {
+        const apiName = t.name.toLowerCase()
+        const score = ourWords.filter((w: string) => apiName.includes(w)).length
+        return { ...t, score }
+      })
+      .filter(t => t.score > 0)
+      .sort((a, b) => b.score - a.score)
 
-  if (!match || match.score < 2) {
-    return NextResponse.json({
-      error: `No confident API match for: ${tournament.name}`,
-      candidates: scored.slice(0, 3),
-    }, { status: 404 })
+    const match = scored[0]
+
+    if (!match || match.score < 2) {
+      return NextResponse.json({
+        error: `No confident API match for: ${tournament.name}`,
+        candidates: scored.slice(0, 3),
+      }, { status: 404 })
+    }
+
+    tournId = match.tournId
+    apiMatchedName = match.name
+
+    // Persist so future cron calls skip the schedule fetch entirely
+    await supabase
+      .from('tournaments')
+      .update({ api_tourn_id: tournId })
+      .eq('id', tournament.id)
   }
 
   // Fetch the live leaderboard
   const lbRes = await fetch(
-    `https://live-golf-data.p.rapidapi.com/leaderboard?orgId=1&tournId=${match.tournId}&year=2026`,
+    `https://live-golf-data.p.rapidapi.com/leaderboard?orgId=1&tournId=${tournId}&year=2026`,
     { headers: { 'x-rapidapi-key': RAPIDAPI_KEY, 'x-rapidapi-host': 'live-golf-data.p.rapidapi.com' } }
   )
   const lb = await lbRes.json()
@@ -177,9 +190,8 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     success: true,
     tournament: tournament.name,
-    apiMatchedName: match.name,
-    apiTournId: match.tournId,
-    matchScore: match.score,
+    apiTournId: tournId,
+    apiMatchedName: apiMatchedName ?? '(cached)',
     golfersUpdated: rows.length,
     round: parseMongo(lb.roundId),
     roundStatus: lb.roundStatus,
