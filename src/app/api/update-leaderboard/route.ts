@@ -22,13 +22,50 @@ export async function GET(req: NextRequest) {
   // Find the in-progress tournament in our DB
   const { data: tournament, error: tErr } = await supabase
     .from('tournaments')
-    .select('id, name')
+    .select('id, name, tee_time')
     .eq('status', 'in_progress')
     .limit(1)
     .single()
 
   if (tErr || !tournament) {
     return NextResponse.json({ message: 'No tournament in progress' })
+  }
+
+  const now = new Date()
+
+  // Guard 1: too early — skip until 30 min after the tournament's scheduled tee time
+  if (tournament.tee_time) {
+    const firstCallAt = new Date(new Date(tournament.tee_time).getTime() + 30 * 60 * 1000)
+    if (now < firstCallAt) {
+      return NextResponse.json({ message: 'Too early — first call is 30 min after tee time', firstCallAt })
+    }
+  }
+
+  // Guard 2: all done today — skip if every picked golfer has thru="F" and was updated today.
+  // The "updated today" check prevents a day-2 deadlock where yesterday's "F" values would
+  // block the first refresh of a new round.
+  const { data: picks } = await supabase
+    .from('picks')
+    .select('golfer_name')
+    .eq('tournament_id', tournament.id)
+
+  const pickedNames = (picks ?? []).map((p: { golfer_name: string }) => p.golfer_name)
+
+  if (pickedNames.length > 0) {
+    const { data: cached } = await supabase
+      .from('leaderboard_cache')
+      .select('golfer_name, thru, last_updated')
+      .in('golfer_name', pickedNames)
+
+    if (cached && cached.length === pickedNames.length) {
+      const today = now.toISOString().slice(0, 10) // "YYYY-MM-DD"
+      const allFinished   = cached.every((r: { thru: string }) => r.thru === 'F')
+      const updatedToday  = cached.some((r: { last_updated: string }) => r.last_updated?.slice(0, 10) === today)
+
+      if (allFinished && updatedToday) {
+        return NextResponse.json({ message: 'All picked players have finished their round for today' })
+      }
+    }
   }
 
   // Fetch Slash Golf schedule to find the matching tournId
