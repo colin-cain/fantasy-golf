@@ -53,6 +53,7 @@ export default async function RootLayout({
 
   // When live, fetch picks + leaderboard cache for the ticker
   let tickerPicks: { member: string; golfer: string; position: string | null; total: string | null; roundScore: string | null; thru: string | null; teeTime: string | null }[] = []
+  let lastUpdated: string | null = null
   if (live) {
     const { data: picks } = await supabase
       .from('picks')
@@ -63,12 +64,18 @@ export default async function RootLayout({
       const golferNames = picks.map((p: { golfer_name: string }) => p.golfer_name)
       const { data: cache } = await supabase
         .from('leaderboard_cache')
-        .select('golfer_name, position, total, round_score, thru, tee_time')
+        .select('golfer_name, position, total, round_score, thru, tee_time, last_updated')
         .in('golfer_name', golferNames)
 
       const cacheMap = Object.fromEntries(
-        (cache ?? []).map((r: { golfer_name: string; position: string; total: string; round_score: string; thru: string; tee_time: string }) => [r.golfer_name, r])
+        (cache ?? []).map((r: { golfer_name: string; position: string; total: string; round_score: string; thru: string; tee_time: string; last_updated: string }) => [r.golfer_name, r])
       )
+
+      // Most recent update timestamp across all cached picks
+      lastUpdated = (cache ?? []).reduce((max: string | null, r: { last_updated: string }) => {
+        if (!max) return r.last_updated
+        return r.last_updated > max ? r.last_updated : max
+      }, null)
 
       tickerPicks = (picks as unknown as { golfer_name: string; league_members: { name: string } }[])
         .map(p => ({
@@ -110,6 +117,7 @@ export default async function RootLayout({
             teeTime={banner.tee_time ?? null}
             inProgress={!!live}
             picks={tickerPicks}
+            lastUpdated={lastUpdated}
           />
         )}
         {children}

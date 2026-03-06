@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
   // Find the in-progress tournament in our DB
   const { data: tournament, error: tErr } = await supabase
     .from('tournaments')
-    .select('id, name, tee_time, api_tourn_id')
+    .select('id, name, tee_time, api_tourn_id, purse')
     .eq('status', 'in_progress')
     .limit(1)
     .single()
@@ -168,6 +168,19 @@ export async function GET(req: NextRequest) {
 
   if (!lb.leaderboardRows) {
     return NextResponse.json({ error: 'No leaderboard data from API' }, { status: 502 })
+  }
+
+  // Cache the tournament purse if we don't have it yet.
+  // The API typically returns purse as a MongoDB $numberInt or plain number.
+  if (!tournament.purse || tournament.purse === 0) {
+    const rawPurse = parseMongo(lb.purse ?? lb.totalPurse ?? lb.prizeMoney)
+    const purse = typeof rawPurse === 'number' && rawPurse > 0 ? rawPurse : 0
+    if (purse > 0) {
+      await supabase
+        .from('tournaments')
+        .update({ purse })
+        .eq('id', tournament.id)
+    }
   }
 
   // Upsert every golfer row into leaderboard_cache

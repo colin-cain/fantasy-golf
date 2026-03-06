@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import CountdownBanner from './CountdownBanner'
 
 type TickerPick = {
@@ -19,6 +20,7 @@ type Props = {
   teeTime: string | null
   inProgress: boolean
   picks?: TickerPick[]
+  lastUpdated?: string | null
 }
 
 const TYPE_STYLES: Record<string, string> = {
@@ -33,7 +35,30 @@ const TYPE_LABELS: Record<string, string> = {
   regular:   'Regular',
 }
 
-export default function TournamentBanner({ name, type, startDate, teeTime, inProgress, picks = [] }: Props) {
+function useTimeAgo(isoTimestamp: string | null | undefined): string | null {
+  const [label, setLabel] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!isoTimestamp) return
+
+    function compute() {
+      const diffMs = Date.now() - new Date(isoTimestamp!).getTime()
+      const diffMin = Math.floor(diffMs / 60_000)
+      if (diffMin < 1) setLabel('just now')
+      else if (diffMin === 1) setLabel('1m ago')
+      else setLabel(`${diffMin}m ago`)
+    }
+
+    compute()
+    const id = setInterval(compute, 30_000)
+    return () => clearInterval(id)
+  }, [isoTimestamp])
+
+  return label
+}
+
+export default function TournamentBanner({ name, type, startDate, teeTime, inProgress, picks = [], lastUpdated }: Props) {
+  const timeAgo = useTimeAgo(lastUpdated)
 
   // ── Live ticker mode ──────────────────────────────────────────────────────
   if (inProgress && picks.length > 0) {
@@ -50,7 +75,7 @@ export default function TournamentBanner({ name, type, startDate, teeTime, inPro
         `}</style>
         <div className="flex items-stretch h-10">
 
-          {/* Fixed left: LIVE + tournament name + type badge — single line */}
+          {/* Fixed left: LIVE + tournament name + type badge + last updated */}
           <div className="flex-shrink-0 flex items-center gap-2 px-4 w-[411px] overflow-hidden border-r border-stone-100">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
             <span className="text-emerald-700 text-[10px] font-semibold uppercase tracking-widest whitespace-nowrap flex-shrink-0">In Progress</span>
@@ -58,6 +83,11 @@ export default function TournamentBanner({ name, type, startDate, teeTime, inPro
             {TYPE_LABELS[type] && (
               <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded-full font-medium leading-none ${TYPE_STYLES[type] ?? ''}`}>
                 {TYPE_LABELS[type]}
+              </span>
+            )}
+            {timeAgo && (
+              <span className="ml-auto text-[10px] text-zinc-400 whitespace-nowrap flex-shrink-0">
+                {timeAgo}
               </span>
             )}
           </div>

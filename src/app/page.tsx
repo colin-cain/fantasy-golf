@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { getProjectedEarnings } from '@/lib/payoutTable'
 import StandingsChart, { ChartPoint } from './components/StandingsChart'
 
 export const dynamic = 'force-dynamic'
@@ -12,6 +13,16 @@ type TournamentWithPicks = {
   name: string
   start_date: string
   picks: { earnings: number; league_members: { name: string } }[]
+}
+
+type LiveCacheRow = {
+  golfer_name: string
+  position: string | null
+}
+
+type LivePick = {
+  golfer_name: string
+  league_members: { name: string }
 }
 
 const MEMBERS = ['Ben', 'Ty', 'JJ', 'Jake', 'Chris', 'Colin']
@@ -78,6 +89,57 @@ async function getChartData(): Promise<{ chartData: ChartPoint[]; weeklyData: Ch
   return { chartData, weeklyData, members: MEMBERS }
 }
 
+/**
+ * Fetches the in-progress tournament + current leaderboard positions + purse,
+ * and returns projected earnings per member. Returns null when no live tournament.
+ */
+async function getLiveProjections(): Promise<{
+  tournamentName: string
+  purse: number
+  projections: Record<string, number>  // member name → projected earnings
+} | null> {
+  const { data: tournament } = await supabase
+    .from('tournaments')
+    .select('id, name, purse')
+    .eq('status', 'in_progress')
+    .limit(1)
+    .single()
+
+  if (!tournament) return null
+
+  // Fetch picks for this tournament
+  const { data: picks } = await supabase
+    .from('picks')
+    .select('golfer_name, league_members(name)')
+    .eq('tournament_id', tournament.id)
+
+  if (!picks?.length) return null
+
+  const golferNames = (picks as unknown as LivePick[]).map(p => p.golfer_name)
+
+  // Fetch current positions from leaderboard cache
+  const { data: cache } = await supabase
+    .from('leaderboard_cache')
+    .select('golfer_name, position')
+    .in('golfer_name', golferNames)
+
+  const positionMap = Object.fromEntries(
+    ((cache ?? []) as LiveCacheRow[]).map(r => [r.golfer_name, r.position])
+  )
+
+  const purse = (tournament.purse as number) ?? 0
+
+  // Map each member to their projected earnings via their golfer's current position
+  const projections: Record<string, number> = {}
+  for (const pick of picks as unknown as LivePick[]) {
+    const memberName = pick.league_members.name
+    const position = positionMap[pick.golfer_name] ?? null
+    projections[memberName] = getProjectedEarnings(position, purse)
+  }
+
+  return { tournamentName: tournament.name, purse, projections }
+}
+
 const RANK_BADGE = [
   'bg-amber-400 text-white',                               // 1st — gold
   'bg-slate-300 text-slate-600',                           // 2nd — silver
@@ -87,12 +149,68 @@ const RANK_BADGE = [
   'bg-stone-100 text-slate-400 border border-stone-200',   // 6th
 ]
 
+function formatDollars(n: number) {
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`
+  if (n >= 1_000)     return `$${(n / 1_000).toFixed(0)}K`
+  return `$${n.toLocaleString()}`
+}
+
 export default async function HomePage() {
-  const [standings, { chartData, weeklyData, members }] = await Promise.all([
+  const [standings, { chartData, weeklyData, members }, live] = await Promise.all([
     getStandings(),
     getChartData(),
+    getLiveProjections(),
   ])
-  const maxEarnings = standings[0]?.total_earnings ?? 1
+
+  // Enrich each standing with live projected + combined values
+  const enriched = standings.map(s => ({
+    ...s,
+    projected: live?.projections[s.name] ?? 0,
+    combined:  s.total_earnings + (live?.projections[s.name] ?? 0),
+  }))
+
+  // When live, sort by combined (most exciting order); otherwise keep realized sort
+  const sorted = live
+    ? [...enriched].sort((a, b) => b.combined - a.combined)
+    : enriched
+
+  const maxValue = live
+    ? (sorted[0]?.combined ?? 1)
+    : (sorted[0]?.total_earnings ?? 1)
+
+  // Add a projected data point to both charts when a live tournament is running
+  const completedCount = chartData.length
+  const projectedLabel = live ? `T${completedCount + 1}` : null
+
+  const enrichedChartData: ChartPoint[] = projectedLabel && live
+    ? [
+        ...chartData,
+        {
+          label:      projectedLabel,
+          tournament: `${live.tournamentName} (Live)`,
+          // Cumulative: each member's realized + projected
+          ...Object.fromEntries(
+            MEMBERS.map(m => {
+              const realized = (chartData[chartData.length - 1]?.[m] as number) ?? 0
+              return [m, realized + (live.projections[m] ?? 0)]
+            })
+          ),
+        },
+      ]
+    : chartData
+
+  const enrichedWeeklyData: ChartPoint[] = projectedLabel && live
+    ? [
+        ...weeklyData,
+        {
+          label:      projectedLabel,
+          tournament: `${live.tournamentName} (Live)`,
+          ...Object.fromEntries(
+            MEMBERS.map(m => [m, live.projections[m] ?? 0])
+          ),
+        },
+      ]
+    : weeklyData
 
   return (
     <main className="min-h-screen bg-stone-100">
@@ -100,7 +218,15 @@ export default async function HomePage() {
 
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Season Standings</h1>
-          <p className="text-slate-500 text-sm mt-1">2026 · Based on PGA Tour prize earnings</p>
+          <p className="text-slate-500 text-sm mt-1">
+            2026 · Based on PGA Tour prize earnings
+            {live && (
+              <span className="ml-2 inline-flex items-center gap-1 text-emerald-600">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" />
+                Projected from live results
+              </span>
+            )}
+          </p>
         </div>
 
         {/* Standings table */}
@@ -110,12 +236,15 @@ export default async function HomePage() {
               <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
                 <th className="px-5 py-3 text-left w-14">#</th>
                 <th className="px-5 py-3 text-left">Player</th>
-                <th className="px-5 py-3 text-right">Earnings</th>
+                <th className="px-5 py-3 text-right">Realized</th>
+                {live && <th className="px-5 py-3 text-right text-emerald-500">Proj.</th>}
+                {live && <th className="px-5 py-3 text-right">Combined</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
-              {standings.map((member, index) => {
-                const pct = Math.round((member.total_earnings / maxEarnings) * 100)
+              {sorted.map((member, index) => {
+                const barValue = live ? member.combined : member.total_earnings
+                const pct = Math.round((barValue / maxValue) * 100)
                 return (
                   <tr key={member.name} className="hover:bg-stone-50 transition-colors">
                     <td className="px-5 py-4">
@@ -128,33 +257,71 @@ export default async function HomePage() {
                       <span className="font-mono text-emerald-700 font-semibold">
                         ${member.total_earnings.toLocaleString()}
                       </span>
-                      <div className="mt-1.5 h-1 rounded-full bg-stone-100 overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-emerald-400"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
+                      {!live && (
+                        <div className="mt-1.5 h-1 rounded-full bg-stone-100 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-emerald-400"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      )}
                     </td>
+                    {live && (
+                      <td className="px-5 py-4 text-right font-mono text-emerald-500 text-xs">
+                        {member.projected > 0 ? `~${formatDollars(member.projected)}` : '—'}
+                      </td>
+                    )}
+                    {live && (
+                      <td className="px-5 py-4 text-right">
+                        <span className="font-mono text-slate-800 font-semibold">
+                          {formatDollars(member.combined)}
+                        </span>
+                        <div className="mt-1.5 h-1 rounded-full bg-stone-100 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-emerald-400"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 )
               })}
             </tbody>
           </table>
+          {live && live.purse > 0 && (
+            <p className="text-[11px] text-slate-400 text-right px-5 py-2.5 border-t border-stone-100">
+              Projected based on current leaderboard position · {live.tournamentName} · ${live.purse.toLocaleString()} purse
+            </p>
+          )}
+          {live && live.purse === 0 && (
+            <p className="text-[11px] text-slate-400 text-right px-5 py-2.5 border-t border-stone-100">
+              Projections unavailable — purse not yet cached
+            </p>
+          )}
         </div>
 
         {/* Cumulative earnings chart */}
-        {chartData.length > 0 && (
+        {enrichedChartData.length > 0 && (
           <div className="bg-white rounded-xl border border-stone-200 shadow-sm px-5 pt-5 pb-3 mt-5">
             <p className="text-xs uppercase tracking-widest text-slate-400 mb-4">Cumulative Earnings</p>
-            <StandingsChart data={chartData} members={members} />
+            <StandingsChart
+              data={enrichedChartData}
+              members={members}
+              projectedLabel={projectedLabel ?? undefined}
+            />
           </div>
         )}
 
         {/* Weekly earnings chart */}
-        {weeklyData.length > 0 && (
+        {enrichedWeeklyData.length > 0 && (
           <div className="bg-white rounded-xl border border-stone-200 shadow-sm px-5 pt-5 pb-3 mt-5">
             <p className="text-xs uppercase tracking-widest text-slate-400 mb-4">Earnings by Tournament</p>
-            <StandingsChart data={weeklyData} members={members} />
+            <StandingsChart
+              data={enrichedWeeklyData}
+              members={members}
+              projectedLabel={projectedLabel ?? undefined}
+            />
           </div>
         )}
 
