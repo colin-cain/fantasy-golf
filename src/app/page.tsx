@@ -149,14 +149,14 @@ const RANK_BADGE = [
   'bg-stone-100 text-slate-400 border border-stone-200',   // 6th
 ]
 
-// Outline variant — same hues as RANK_BADGE but hollow, signals "projected not confirmed"
-const RANK_BADGE_OUTLINE = [
-  'border-2 border-amber-400 text-amber-500 bg-white',     // 1st — gold
-  'border-2 border-slate-300 text-slate-400 bg-white',     // 2nd — silver
-  'border-2 border-orange-700 text-orange-700 bg-white',   // 3rd — bronze
-  'border-2 border-stone-200 text-slate-300 bg-white',     // 4th
-  'border-2 border-stone-200 text-slate-300 bg-white',     // 5th
-  'border-2 border-stone-200 text-slate-300 bg-white',     // 6th
+// Muted filled variant — same hues as RANK_BADGE but softened, signals "projected not confirmed"
+const RANK_BADGE_MUTED = [
+  'bg-amber-100 text-amber-500',                           // 1st — muted gold
+  'bg-slate-100 text-slate-400',                           // 2nd — muted silver
+  'bg-orange-100 text-orange-600',                         // 3rd — muted bronze
+  'bg-stone-100 text-slate-300',                           // 4th
+  'bg-stone-100 text-slate-300',                           // 5th
+  'bg-stone-100 text-slate-300',                           // 6th
 ]
 
 function formatDollars(n: number) {
@@ -284,15 +284,15 @@ export default async function HomePage() {
                       )}
                     </td>
                     {live && (
-                      <td className="px-5 py-4 text-right font-mono text-emerald-500 text-xs">
+                      <td className="px-5 py-4 text-right font-mono text-slate-400 text-xs italic">
                         {member.projected > 0 ? `~${formatDollars(member.projected)}` : '—'}
                       </td>
                     )}
                     {live && (
                       <td className="px-5 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          {/* Projected rank badge — outline style signals "not yet confirmed" */}
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${RANK_BADGE_OUTLINE[projRank - 1] ?? 'border-2 border-stone-200 text-slate-300 bg-white'}`}>
+                          {/* Projected rank badge — muted fill signals "not yet confirmed" */}
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${RANK_BADGE_MUTED[projRank - 1] ?? 'bg-stone-100 text-slate-300'}`}>
                             {projRank}
                           </div>
                           {/* Rank movement arrow */}
