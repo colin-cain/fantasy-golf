@@ -47,6 +47,17 @@ function scoreMatch(dbName: string, apiName: string): number {
   return words.filter(w => target.includes(w)).length
 }
 
+/**
+ * Adaptive confidence threshold: if a tournament name only has 1 significant word
+ * (e.g. "RBC Heritage", "3M Open", "BMW Championship") a score of 1 is the maximum
+ * achievable and still constitutes a confident match. Names with 2+ significant
+ * words require a score of at least 2 to avoid false positives.
+ */
+function minConfidentScore(dbName: string): number {
+  const words = dbName.toLowerCase().split(/\s+/).filter(w => w.length > 3)
+  return Math.min(2, words.length)
+}
+
 export async function GET(req: NextRequest) {
   // Auth: same ?secret= pattern as the cron endpoint
   const authHeader = req.headers.get('authorization')
@@ -99,16 +110,17 @@ export async function GET(req: NextRequest) {
       .sort((a, b) => b.score - a.score)
 
     const best = scored[0]
+    const threshold = minConfidentScore(dbT.name)
 
-    if (!best || best.score < 2) {
+    if (!best || best.score < threshold) {
       results.push({
         tournament: dbT.name,
         matched: null,
-        score: 0,
+        score: best?.score ?? 0,
         api_tourn_id: null,
         purse: null,
         updated: false,
-        skipped_reason: 'No confident match (score < 2)',
+        skipped_reason: `No confident match (best score ${best?.score ?? 0} < threshold ${threshold})`,
       })
       continue
     }

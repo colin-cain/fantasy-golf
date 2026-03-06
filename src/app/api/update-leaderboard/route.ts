@@ -126,9 +126,12 @@ export async function GET(req: NextRequest) {
     )
     const scheduleData = await scheduleRes.json()
 
-    // Score entries by significant-word overlap to find the best match
-    const ourName = tournament.name.toLowerCase()
+    // Score entries by significant-word overlap to find the best match.
+    // Threshold is adaptive: names with only 1 significant word (e.g. "RBC Heritage",
+    // "3M Open") require score ≥ 1; names with 2+ significant words require score ≥ 2.
+    const ourName  = tournament.name.toLowerCase()
     const ourWords = ourName.split(' ').filter((w: string) => w.length > 3)
+    const minScore = Math.min(2, ourWords.length)
 
     type ScheduleEntry = { name: string; tournId: string }
     const scored = (scheduleData.schedule as ScheduleEntry[] ?? [])
@@ -142,7 +145,7 @@ export async function GET(req: NextRequest) {
 
     const match = scored[0]
 
-    if (!match || match.score < 2) {
+    if (!match || match.score < minScore) {
       return NextResponse.json({
         error: `No confident API match for: ${tournament.name}`,
         candidates: scored.slice(0, 3),
