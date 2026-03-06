@@ -70,7 +70,7 @@ export default function TournamentBanner({ name, type, startDate, teeTime, inPro
                     <span className="text-slate-800 text-xs font-semibold">{lastName}</span>
                     <span className="text-zinc-500 text-xs font-medium">({member})</span>
                     <span className={`font-mono font-bold text-xs ${scoreColor}`}>{total ?? '–'}</span>
-                    <span className="text-zinc-400 text-xs">{thru ?? '–'}</span>
+                    <span className="text-zinc-400 text-xs">{(!thru || thru === '0') ? '–' : thru}</span>
                   </span>,
                   <span key={`sep-${i}`} className="inline-block w-px h-4 bg-stone-200 self-center flex-shrink-0" />,
                 ]
