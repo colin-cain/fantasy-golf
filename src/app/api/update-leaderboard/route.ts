@@ -41,9 +41,10 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Guard 2: all done today — skip if every picked golfer has thru="F" and was updated today.
-  // The "updated today" check prevents a day-2 deadlock where yesterday's "F" values would
-  // block the first refresh of a new round.
+  // Guard 2: all done today — skip if every picked golfer has thru="F", was updated today,
+  // AND the cached round matches the expected round for today. The round check prevents a
+  // day-2 deadlock: if the API still returns round-N "F" data at the very start of round N+1,
+  // the first cron call would stamp last_updated=today and block all subsequent calls.
   const { data: picks } = await supabase
     .from('picks')
     .select('golfer_name')
@@ -54,7 +55,7 @@ export async function GET(req: NextRequest) {
   if (pickedNames.length > 0) {
     const { data: cached } = await supabase
       .from('leaderboard_cache')
-      .select('golfer_name, thru, last_updated')
+      .select('golfer_name, thru, last_updated, round')
       .in('golfer_name', pickedNames)
 
     if (cached && cached.length === pickedNames.length) {
@@ -63,7 +64,21 @@ export async function GET(req: NextRequest) {
       const updatedToday  = cached.some((r: { last_updated: string }) => r.last_updated?.slice(0, 10) === today)
 
       if (allFinished && updatedToday) {
-        return NextResponse.json({ message: 'All picked players have finished their round for today' })
+        // Extra guard: only skip if the round stored in the cache matches the expected round
+        // for today. Without this, the first cron call of a new round day can write stale
+        // "F" data from the previous round (API hasn't flipped yet), stamping last_updated
+        // with today's date and blocking every subsequent call for the rest of the day.
+        const rawRound = (cached[0] as { round?: unknown })?.round
+        const cachedRound = typeof rawRound === 'number' ? rawRound : parseInt(String(rawRound ?? '0'), 10)
+        const msPerDay = 24 * 60 * 60 * 1000
+        const daysSinceTeeTime = tournament.tee_time
+          ? Math.floor((now.getTime() - new Date(tournament.tee_time).getTime()) / msPerDay)
+          : 0
+        const expectedRound = Math.max(1, daysSinceTeeTime + 1)
+
+        if (cachedRound >= expectedRound) {
+          return NextResponse.json({ message: 'All picked players have finished their round for today' })
+        }
       }
     }
   }
