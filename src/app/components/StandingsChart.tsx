@@ -35,7 +35,17 @@ function CustomTooltip({ active, payload, label }: any) {
 
   const tournament = payload[0]?.payload?.tournament ?? label
   const isProjected = typeof tournament === 'string' && tournament.includes('(Live)')
-  const sorted = [...payload].sort((a, b) => b.value - a.value)
+
+  // Normalize dataKeys: strip _proj suffix, deduplicate by member name
+  const seen = new Set<string>()
+  const entries = [...payload]
+    .map((e: any) => ({ ...e, memberName: String(e.dataKey).replace(/_proj$/, '') }))
+    .filter((e: any) => {
+      if (seen.has(e.memberName)) return false
+      seen.add(e.memberName)
+      return true
+    })
+    .sort((a: any, b: any) => b.value - a.value)
 
   return (
     <div className="bg-white border border-stone-200 rounded-xl shadow-lg px-4 py-3 text-xs font-mono min-w-[180px]">
@@ -43,9 +53,9 @@ function CustomTooltip({ active, payload, label }: any) {
       {isProjected && (
         <p className="text-[10px] text-emerald-500 mb-1.5 font-sans">Projected · in progress</p>
       )}
-      {sorted.map((entry: any) => (
-        <div key={entry.dataKey} className="flex justify-between gap-4 py-0.5">
-          <span style={{ color: entry.color }} className="font-semibold">{entry.dataKey}</span>
+      {entries.map((entry: any) => (
+        <div key={entry.memberName} className="flex justify-between gap-4 py-0.5">
+          <span style={{ color: entry.color }} className="font-semibold">{entry.memberName}</span>
           <span className="text-slate-700">
             {isProjected ? '~' : ''}{formatDollars(entry.value)}
           </span>
@@ -66,9 +76,32 @@ export default function StandingsChart({
   projectedLabel?: string
   lastCompletedLabel?: string
 }) {
+  const hasProjected = !!(projectedLabel && lastCompletedLabel)
+
+  // Pre-process into a single dataset at the chart level to avoid x-axis duplication.
+  // At the projected point: move member values to ${member}_proj keys, clear main keys
+  //   so the solid confirmed line stops cleanly there.
+  // At the last completed point: copy values to ${member}_proj keys too
+  //   so the dashed segment has a start anchor.
+  const chartData = hasProjected
+    ? data.map(p => {
+        if (p.label === projectedLabel) {
+          const out: ChartPoint = { label: p.label, tournament: p.tournament }
+          for (const m of members) out[`${m}_proj`] = p[m]
+          return out
+        }
+        if (p.label === lastCompletedLabel) {
+          const out: ChartPoint = { ...p }
+          for (const m of members) out[`${m}_proj`] = p[m]
+          return out
+        }
+        return p
+      })
+    : data
+
   return (
     <ResponsiveContainer width="100%" height={280}>
-      <LineChart data={data} margin={{ top: 8, right: 16, left: 8, bottom: 0 }}>
+      <LineChart data={chartData} margin={{ top: 8, right: 16, left: 8, bottom: 0 }}>
         <XAxis
           dataKey="label"
           tick={{ fontSize: 11, fontFamily: 'var(--font-geist-mono)', fill: '#94a3b8' }}
@@ -90,7 +123,7 @@ export default function StandingsChart({
         />
 
         {/* Light shaded region marking the projected zone */}
-        {projectedLabel && lastCompletedLabel && (
+        {hasProjected && (
           <ReferenceArea
             x1={lastCompletedLabel}
             x2={projectedLabel}
@@ -120,29 +153,12 @@ export default function StandingsChart({
 
         {members.map((member) => {
           const color = MEMBER_COLORS[member] ?? '#94a3b8'
-          const hasProjected = !!(projectedLabel && lastCompletedLabel)
-
-          // Confirmed data: projected point set to undefined so the solid line stops cleanly
-          const confirmedData = hasProjected
-            ? data.map(p => p.label === projectedLabel ? { ...p, [member]: undefined } : p)
-            : data
-
-          // Projected segment: only the two boundary points are defined
-          const projSegData = hasProjected
-            ? data.map(p =>
-                p.label === lastCompletedLabel || p.label === projectedLabel
-                  ? p
-                  : { ...p, [member]: undefined }
-              )
-            : []
-
           return (
             <React.Fragment key={member}>
-              {/* Solid confirmed line */}
+              {/* Solid confirmed line — stops at projected point (value is undefined there) */}
               <Line
                 type="monotone"
                 dataKey={member}
-                data={confirmedData}
                 stroke={color}
                 strokeWidth={2}
                 dot={(props: any) => {
@@ -152,12 +168,11 @@ export default function StandingsChart({
                 activeDot={{ r: 5, strokeWidth: 0 }}
                 legendType="circle"
               />
-              {/* Muted dashed projected segment */}
+              {/* Muted dashed projected segment — only the two boundary points have values */}
               {hasProjected && (
                 <Line
                   type="monotone"
-                  dataKey={member}
-                  data={projSegData}
+                  dataKey={`${member}_proj`}
                   stroke={color}
                   strokeWidth={1.5}
                   strokeOpacity={0.35}
