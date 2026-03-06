@@ -12,9 +12,10 @@ function parseMongo(val: unknown): number | string {
 }
 
 export async function GET(req: NextRequest) {
-  // Protect the endpoint
-  const secret = req.nextUrl.searchParams.get('secret')
-  if (secret !== CRON_SECRET) {
+  // Accept either Vercel's Authorization: Bearer header (cron) or ?secret= query param (manual)
+  const authHeader = req.headers.get('authorization')
+  const querySecret = req.nextUrl.searchParams.get('secret')
+  if (authHeader !== `Bearer ${CRON_SECRET}` && querySecret !== CRON_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
