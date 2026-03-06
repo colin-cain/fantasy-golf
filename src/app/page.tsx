@@ -281,6 +281,10 @@ export default async function HomePage() {
                     {live && (
                       <td className="px-5 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
+                          {/* Projected rank badge */}
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${RANK_BADGE[projRank - 1] ?? 'bg-stone-100 text-slate-400'}`}>
+                            {projRank}
+                          </div>
                           {/* Rank movement arrow */}
                           {delta > 0 && (
                             <span className="text-[11px] font-semibold text-emerald-500 tabular-nums">
