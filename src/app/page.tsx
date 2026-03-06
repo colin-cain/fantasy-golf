@@ -263,9 +263,9 @@ export default async function HomePage() {
               <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
                 <th className="px-5 py-3 text-left">#</th>
                 <th className="px-5 py-3 text-left">Player</th>
-                <th className="px-5 py-3 text-right">Earnings</th>
+                <th className="px-5 py-3 text-right">Cumulative Earnings</th>
                 {live && <th className="px-5 py-3 text-right italic border-l border-stone-200">Current Week</th>}
-                {live && <th className="px-5 py-3 text-right italic">Earnings</th>}
+                {live && <th className="px-5 py-3 text-right italic">Cumulative Earnings</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">

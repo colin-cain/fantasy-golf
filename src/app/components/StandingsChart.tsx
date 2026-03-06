@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import {
   ResponsiveContainer,
   LineChart,
@@ -117,44 +118,72 @@ export default function StandingsChart({
           />
         )}
 
-        {members.map((member) => (
-          <Line
-            key={member}
-            type="monotone"
-            dataKey={member}
-            stroke={MEMBER_COLORS[member] ?? '#94a3b8'}
-            strokeWidth={2}
-            dot={(props: any) => {
-              const { cx, cy, payload } = props
-              const isProjected = projectedLabel && payload.label === projectedLabel
-              if (isProjected) {
-                // Open/hollow dot for projected point
-                return (
-                  <circle
-                    key={`dot-${member}-${cx}`}
-                    cx={cx}
-                    cy={cy}
-                    r={4}
-                    fill="white"
-                    stroke={MEMBER_COLORS[member] ?? '#94a3b8'}
-                    strokeWidth={2}
-                  />
-                )
-              }
-              return (
-                <circle
-                  key={`dot-${member}-${cx}`}
-                  cx={cx}
-                  cy={cy}
-                  r={3}
-                  fill={MEMBER_COLORS[member] ?? '#94a3b8'}
-                  stroke="none"
-                />
+        {members.map((member) => {
+          const color = MEMBER_COLORS[member] ?? '#94a3b8'
+          const hasProjected = !!(projectedLabel && lastCompletedLabel)
+
+          // Confirmed data: projected point set to undefined so the solid line stops cleanly
+          const confirmedData = hasProjected
+            ? data.map(p => p.label === projectedLabel ? { ...p, [member]: undefined } : p)
+            : data
+
+          // Projected segment: only the two boundary points are defined
+          const projSegData = hasProjected
+            ? data.map(p =>
+                p.label === lastCompletedLabel || p.label === projectedLabel
+                  ? p
+                  : { ...p, [member]: undefined }
               )
-            }}
-            activeDot={{ r: 5, strokeWidth: 0 }}
-          />
-        ))}
+            : []
+
+          return (
+            <React.Fragment key={member}>
+              {/* Solid confirmed line */}
+              <Line
+                type="monotone"
+                dataKey={member}
+                data={confirmedData}
+                stroke={color}
+                strokeWidth={2}
+                dot={(props: any) => {
+                  const { cx, cy } = props
+                  return <circle key={`dot-${member}-${cx}`} cx={cx} cy={cy} r={3} fill={color} stroke="none" />
+                }}
+                activeDot={{ r: 5, strokeWidth: 0 }}
+                legendType="circle"
+              />
+              {/* Muted dashed projected segment */}
+              {hasProjected && (
+                <Line
+                  type="monotone"
+                  dataKey={member}
+                  data={projSegData}
+                  stroke={color}
+                  strokeWidth={1.5}
+                  strokeOpacity={0.35}
+                  strokeDasharray="5 4"
+                  dot={(props: any) => {
+                    const { cx, cy, payload } = props
+                    if (payload.label !== projectedLabel) return <g key={`dot-proj-${member}-${cx}`} />
+                    return (
+                      <circle
+                        key={`dot-proj-${member}-${cx}`}
+                        cx={cx} cy={cy} r={4}
+                        fill="white"
+                        stroke={color}
+                        strokeWidth={2}
+                        strokeOpacity={0.5}
+                      />
+                    )
+                  }}
+                  legendType="none"
+                  activeDot={false}
+                  isAnimationActive={false}
+                />
+              )}
+            </React.Fragment>
+          )
+        })}
       </LineChart>
     </ResponsiveContainer>
   )
