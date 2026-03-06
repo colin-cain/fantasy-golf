@@ -244,21 +244,28 @@ export default async function HomePage() {
         {/* Standings table */}
         <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
+            <colgroup>
+              <col className="w-14" />
+              <col />
+              <col className={live ? 'w-36' : ''} />
+              {live && <col className="w-36" />}
+              {live && <col className="w-48" />}
+            </colgroup>
             <thead>
               {live && (
                 <tr className="bg-stone-50 text-[10px] uppercase tracking-widest text-slate-300">
                   <th colSpan={3} />
-                  <th colSpan={2} className="px-5 pt-2 pb-0 text-right border-l border-stone-200 italic">
+                  <th colSpan={2} className="px-5 pt-2 pb-0 text-center border-l border-stone-200 italic">
                     Projected
                   </th>
                 </tr>
               )}
               <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
-                <th className="px-5 py-3 text-left w-14">#</th>
+                <th className="px-5 py-3 text-left">#</th>
                 <th className="px-5 py-3 text-left">Player</th>
                 <th className="px-5 py-3 text-right">Earnings</th>
-                {live && <th className="px-5 py-3 text-right italic border-l border-stone-200">Current Week Proj.</th>}
-                {live && <th className="px-5 py-3 text-right italic">Combined Proj.</th>}
+                {live && <th className="px-5 py-3 text-right italic border-l border-stone-200">Current Week</th>}
+                {live && <th className="px-5 py-3 text-right italic">Earnings</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
