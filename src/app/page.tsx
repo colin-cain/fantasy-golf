@@ -149,6 +149,16 @@ const RANK_BADGE = [
   'bg-stone-100 text-slate-400 border border-stone-200',   // 6th
 ]
 
+// Outline variant — same hues as RANK_BADGE but hollow, signals "projected not confirmed"
+const RANK_BADGE_OUTLINE = [
+  'border-2 border-amber-400 text-amber-500 bg-white',     // 1st — gold
+  'border-2 border-slate-300 text-slate-400 bg-white',     // 2nd — silver
+  'border-2 border-orange-700 text-orange-700 bg-white',   // 3rd — bronze
+  'border-2 border-stone-200 text-slate-300 bg-white',     // 4th
+  'border-2 border-stone-200 text-slate-300 bg-white',     // 5th
+  'border-2 border-stone-200 text-slate-300 bg-white',     // 6th
+]
+
 function formatDollars(n: number) {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`
   if (n >= 1_000)     return `$${(n / 1_000).toFixed(0)}K`
@@ -281,8 +291,8 @@ export default async function HomePage() {
                     {live && (
                       <td className="px-5 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          {/* Projected rank badge */}
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${RANK_BADGE[projRank - 1] ?? 'bg-stone-100 text-slate-400'}`}>
+                          {/* Projected rank badge — outline style signals "not yet confirmed" */}
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${RANK_BADGE_OUTLINE[projRank - 1] ?? 'border-2 border-stone-200 text-slate-300 bg-white'}`}>
                             {projRank}
                           </div>
                           {/* Rank movement arrow */}
@@ -299,7 +309,7 @@ export default async function HomePage() {
                           {delta === 0 && (
                             <span className="text-[11px] text-slate-300">→</span>
                           )}
-                          <span className="font-mono text-slate-800 font-semibold">
+                          <span className="font-mono text-slate-400 italic">
                             ~{formatDollars(member.combined)}
                           </span>
                         </div>
