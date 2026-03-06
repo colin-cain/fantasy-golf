@@ -78,11 +78,23 @@ export default function StandingsChart({
 }) {
   const hasProjected = !!(projectedLabel && lastCompletedLabel)
 
+  // Include the 2 points before lastCompletedLabel as curve anchors for the projected
+  // segment so monotone interpolation has enough context to curve naturally into the
+  // projected point. The solid confirmed line covers that overlap at low opacity.
+  const lastCompletedIdx = hasProjected
+    ? data.findIndex(p => p.label === lastCompletedLabel)
+    : -1
+  const curveAnchorLabels = new Set(
+    lastCompletedIdx > 0
+      ? data.slice(Math.max(0, lastCompletedIdx - 2), lastCompletedIdx).map(p => p.label)
+      : []
+  )
+
   // Pre-process into a single dataset at the chart level to avoid x-axis duplication.
   // At the projected point: move member values to ${member}_proj keys, clear main keys
   //   so the solid confirmed line stops cleanly there.
-  // At the last completed point: copy values to ${member}_proj keys too
-  //   so the dashed segment has a start anchor.
+  // At the last completed point and its 2 predecessors: copy values to ${member}_proj
+  //   keys so the dashed segment curves naturally into the projected point.
   const chartData = hasProjected
     ? data.map(p => {
         if (p.label === projectedLabel) {
@@ -90,7 +102,7 @@ export default function StandingsChart({
           for (const m of members) out[`${m}_proj`] = p[m]
           return out
         }
-        if (p.label === lastCompletedLabel) {
+        if (p.label === lastCompletedLabel || curveAnchorLabels.has(String(p.label))) {
           const out: ChartPoint = { ...p }
           for (const m of members) out[`${m}_proj`] = p[m]
           return out
