@@ -9,6 +9,7 @@ import {
   Tooltip,
   Legend,
   ReferenceLine,
+  ReferenceArea,
 } from 'recharts'
 
 export type ChartPoint = Record<string, string | number>
@@ -57,10 +58,12 @@ export default function StandingsChart({
   data,
   members,
   projectedLabel,
+  lastCompletedLabel,
 }: {
   data: ChartPoint[]
   members: string[]
   projectedLabel?: string
+  lastCompletedLabel?: string
 }) {
   return (
     <ResponsiveContainer width="100%" height={280}>
@@ -85,20 +88,31 @@ export default function StandingsChart({
           wrapperStyle={{ fontSize: 12, fontFamily: 'var(--font-geist-mono)', paddingTop: 12 }}
         />
 
-        {/* Dashed vertical line separating completed from projected data */}
+        {/* Light shaded region marking the projected zone */}
+        {projectedLabel && lastCompletedLabel && (
+          <ReferenceArea
+            x1={lastCompletedLabel}
+            x2={projectedLabel}
+            fill="#f0fdf4"
+            fillOpacity={0.7}
+            stroke="none"
+          />
+        )}
+
+        {/* Dashed border at the projected data point */}
         {projectedLabel && (
           <ReferenceLine
             x={projectedLabel}
-            stroke="#d1fae5"
-            strokeWidth={2}
+            stroke="#a7f3d0"
+            strokeWidth={1.5}
             strokeDasharray="5 4"
             label={{
-              value: 'Live →',
-              position: 'insideTopLeft',
+              value: '← projected',
+              position: 'insideTopRight',
               fontSize: 9,
               fill: '#6ee7b7',
               fontFamily: 'var(--font-geist-mono)',
-              dy: -4,
+              dy: 4,
             }}
           />
         )}

@@ -178,9 +178,14 @@ export default async function HomePage() {
     ? (sorted[0]?.combined ?? 1)
     : (sorted[0]?.total_earnings ?? 1)
 
+  // Realized rank map — used to compute position movement arrows in the live table
+  const realizedOrder = [...enriched].sort((a, b) => b.total_earnings - a.total_earnings)
+  const realizedRankMap = new Map(realizedOrder.map((s, i) => [s.name, i + 1]))
+
   // Add a projected data point to both charts when a live tournament is running
   const completedCount = chartData.length
-  const projectedLabel = live ? `T${completedCount + 1}` : null
+  const projectedLabel    = live ? `T${completedCount + 1}` : null
+  const lastCompletedLabel = chartData[chartData.length - 1]?.label as string | undefined
 
   const enrichedChartData: ChartPoint[] = projectedLabel && live
     ? [
@@ -236,15 +241,25 @@ export default async function HomePage() {
               <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
                 <th className="px-5 py-3 text-left w-14">#</th>
                 <th className="px-5 py-3 text-left">Player</th>
-                <th className="px-5 py-3 text-right">Realized</th>
+                <th className="px-5 py-3 text-right">Earnings</th>
                 {live && <th className="px-5 py-3 text-right text-emerald-500">Proj.</th>}
-                {live && <th className="px-5 py-3 text-right">Combined</th>}
+                {live && (
+                  <th className="px-5 py-3 text-right">
+                    <span className="block">Combined</span>
+                    <span className="block text-[10px] font-normal normal-case tracking-normal italic text-slate-300 mt-0.5">if results hold</span>
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
               {sorted.map((member, index) => {
-                const barValue = live ? member.combined : member.total_earnings
-                const pct = Math.round((barValue / maxValue) * 100)
+                const pct = Math.round((member.total_earnings / maxValue) * 100)
+
+                // Rank movement: realizedRank vs current projected rank (index + 1)
+                const realRank = realizedRankMap.get(member.name) ?? index + 1
+                const projRank = index + 1
+                const delta = realRank - projRank  // positive = moved up
+
                 return (
                   <tr key={member.name} className="hover:bg-stone-50 transition-colors">
                     <td className="px-5 py-4">
@@ -273,14 +288,24 @@ export default async function HomePage() {
                     )}
                     {live && (
                       <td className="px-5 py-4 text-right">
-                        <span className="font-mono text-slate-800 font-semibold">
-                          {formatDollars(member.combined)}
-                        </span>
-                        <div className="mt-1.5 h-1 rounded-full bg-stone-100 overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-emerald-400"
-                            style={{ width: `${pct}%` }}
-                          />
+                        <div className="flex items-center justify-end gap-2">
+                          {/* Rank movement arrow */}
+                          {delta > 0 && (
+                            <span className="text-[11px] font-semibold text-emerald-500 tabular-nums">
+                              ↑{delta}
+                            </span>
+                          )}
+                          {delta < 0 && (
+                            <span className="text-[11px] font-semibold text-orange-400 tabular-nums">
+                              ↓{Math.abs(delta)}
+                            </span>
+                          )}
+                          {delta === 0 && (
+                            <span className="text-[11px] text-slate-300">→</span>
+                          )}
+                          <span className="font-mono text-slate-800 font-semibold">
+                            ~{formatDollars(member.combined)}
+                          </span>
                         </div>
                       </td>
                     )}
@@ -309,6 +334,7 @@ export default async function HomePage() {
               data={enrichedChartData}
               members={members}
               projectedLabel={projectedLabel ?? undefined}
+              lastCompletedLabel={lastCompletedLabel}
             />
           </div>
         )}
@@ -321,6 +347,7 @@ export default async function HomePage() {
               data={enrichedWeeklyData}
               members={members}
               projectedLabel={projectedLabel ?? undefined}
+              lastCompletedLabel={lastCompletedLabel}
             />
           </div>
         )}
