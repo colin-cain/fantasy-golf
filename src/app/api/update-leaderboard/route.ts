@@ -45,18 +45,7 @@ export async function GET(req: NextRequest) {
 
   const now = new Date()
 
-  // Guard 1: too early — skip until 30 min after the tournament's scheduled tee time
-  if (tournament.tee_time) {
-    const firstCallAt = new Date(new Date(tournament.tee_time).getTime() + 30 * 60 * 1000)
-    if (now < firstCallAt) {
-      return NextResponse.json({ message: 'Too early — first call is 30 min after tee time', firstCallAt })
-    }
-  }
-
-  // Guard 2: all done today — skip if every picked golfer has thru="F", was updated today,
-  // AND the cached round matches the expected round for today. The round check prevents a
-  // day-2 deadlock: if the API still returns round-N "F" data at the very start of round N+1,
-  // the first cron call would stamp last_updated=today and block all subsequent calls.
+  // Load picks + cache upfront — used by both guards below
   const { data: picks } = await supabase
     .from('picks')
     .select('golfer_name')
@@ -64,33 +53,63 @@ export async function GET(req: NextRequest) {
 
   const pickedNames = (picks ?? []).map((p: { golfer_name: string }) => p.golfer_name)
 
+  type CacheRow = { golfer_name: string; thru: string; last_updated: string; round: unknown; tee_time: string | null }
+  let cached: CacheRow[] = []
   if (pickedNames.length > 0) {
-    const { data: cached } = await supabase
+    const { data } = await supabase
       .from('leaderboard_cache')
-      .select('golfer_name, thru, last_updated, round')
+      .select('golfer_name, thru, last_updated, round, tee_time')
       .in('golfer_name', pickedNames)
+    cached = (data ?? []) as CacheRow[]
+  }
 
-    if (cached && cached.length === pickedNames.length) {
-      const today = now.toISOString().slice(0, 10) // "YYYY-MM-DD"
-      const allFinished   = cached.every((r: { thru: string }) => r.thru === 'F')
-      const updatedToday  = cached.some((r: { last_updated: string }) => r.last_updated?.slice(0, 10) === today)
+  // Guard 1: too early — skip if none of our picks have teed off yet.
+  // Uses each pick's individual tee time timestamp from cache (precise, per-player).
+  // Only blocks when ALL cached tee times are still in the future — lifts the moment
+  // any pick starts. Falls back to tournament.tee_time + 30 min when cache is empty
+  // (i.e. the very first call for this tournament before any data exists).
+  {
+    const teeTimes = cached
+      .map((r) => { const n = parseInt(String(r.tee_time ?? '')); return isNaN(n) ? null : n })
+      .filter((n): n is number => n !== null)
 
-      if (allFinished && updatedToday) {
-        // Extra guard: only skip if the round stored in the cache matches the expected round
-        // for today. Without this, the first cron call of a new round day can write stale
-        // "F" data from the previous round (API hasn't flipped yet), stamping last_updated
-        // with today's date and blocking every subsequent call for the rest of the day.
-        const rawRound = (cached[0] as { round?: unknown })?.round
-        const cachedRound = typeof rawRound === 'number' ? rawRound : parseInt(String(rawRound ?? '0'), 10)
-        const msPerDay = 24 * 60 * 60 * 1000
-        const daysSinceTeeTime = tournament.tee_time
-          ? Math.floor((now.getTime() - new Date(tournament.tee_time).getTime()) / msPerDay)
-          : 0
-        const expectedRound = Math.max(1, daysSinceTeeTime + 1)
-
-        if (cachedRound >= expectedRound) {
-          return NextResponse.json({ message: 'All picked players have finished their round for today' })
+    if (teeTimes.length > 0) {
+      if (teeTimes.every((n) => n > now.getTime())) {
+        // Every pick is still to tee off — wait until 30 min after the first one starts
+        const firstCallAt = new Date(Math.min(...teeTimes) + 30 * 60 * 1000)
+        if (now < firstCallAt) {
+          return NextResponse.json({ message: 'Too early — no picks have teed off yet', firstCallAt })
         }
+      }
+    } else if (tournament.tee_time) {
+      // No cached tee times yet (first call ever) — fall back to scheduled tournament tee time
+      const firstCallAt = new Date(new Date(tournament.tee_time).getTime() + 30 * 60 * 1000)
+      if (now < firstCallAt) {
+        return NextResponse.json({ message: 'Too early — first call is 30 min after tee time', firstCallAt })
+      }
+    }
+  }
+
+  // Guard 2: all done today — skip if every picked golfer has thru="F", was updated today,
+  // AND the cached round matches the expected round for today. The round check prevents a
+  // day-2 deadlock: if the API still returns round-N "F" data at the very start of round N+1,
+  // the first cron call would stamp last_updated=today and block all subsequent calls.
+  if (cached.length > 0 && cached.length === pickedNames.length) {
+    const today = now.toISOString().slice(0, 10) // "YYYY-MM-DD"
+    const allFinished  = cached.every((r) => r.thru === 'F')
+    const updatedToday = cached.some((r) => r.last_updated?.slice(0, 10) === today)
+
+    if (allFinished && updatedToday) {
+      const rawRound = cached[0]?.round
+      const cachedRound = typeof rawRound === 'number' ? rawRound : parseInt(String(rawRound ?? '0'), 10)
+      const msPerDay = 24 * 60 * 60 * 1000
+      const daysSinceTeeTime = tournament.tee_time
+        ? Math.floor((now.getTime() - new Date(tournament.tee_time).getTime()) / msPerDay)
+        : 0
+      const expectedRound = Math.max(1, daysSinceTeeTime + 1)
+
+      if (cachedRound >= expectedRound) {
+        return NextResponse.json({ message: 'All picked players have finished their round for today' })
       }
     }
   }
