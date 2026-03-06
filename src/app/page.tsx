@@ -253,9 +253,9 @@ export default async function HomePage() {
             </colgroup>
             <thead>
               {live && (
-                <tr className="bg-stone-50 text-[10px] uppercase tracking-widest text-slate-300">
+                <tr className="bg-stone-50 text-xs uppercase tracking-widest text-slate-400">
                   <th colSpan={3} />
-                  <th colSpan={2} className="px-5 pt-2 pb-0 text-center border-l border-stone-200 italic">
+                  <th colSpan={2} className="px-5 pt-3 pb-0 text-center border-l border-stone-200 italic">
                     Projected
                   </th>
                 </tr>
