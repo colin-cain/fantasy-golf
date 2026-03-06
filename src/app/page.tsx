@@ -245,11 +245,19 @@ export default async function HomePage() {
         <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
             <thead>
+              {live && (
+                <tr className="bg-stone-50 text-[10px] uppercase tracking-widest text-slate-300">
+                  <th colSpan={3} />
+                  <th colSpan={2} className="px-5 pt-2 pb-0 text-right border-l border-stone-200 italic">
+                    Projected
+                  </th>
+                </tr>
+              )}
               <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
                 <th className="px-5 py-3 text-left w-14">#</th>
                 <th className="px-5 py-3 text-left">Player</th>
                 <th className="px-5 py-3 text-right">Earnings</th>
-                {live && <th className="px-5 py-3 text-right italic">Current Week Proj.</th>}
+                {live && <th className="px-5 py-3 text-right italic border-l border-stone-200">Current Week Proj.</th>}
                 {live && <th className="px-5 py-3 text-right italic">Combined Proj.</th>}
               </tr>
             </thead>
@@ -284,7 +292,7 @@ export default async function HomePage() {
                       )}
                     </td>
                     {live && (
-                      <td className="px-5 py-4 text-right font-mono text-slate-400 text-xs italic">
+                      <td className="px-5 py-4 text-right font-mono text-slate-400 text-xs italic border-l border-stone-200">
                         {member.projected > 0 ? `~${formatDollars(member.projected)}` : '—'}
                       </td>
                     )}
