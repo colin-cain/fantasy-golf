@@ -10,7 +10,6 @@ import {
   Tooltip,
   Legend,
   ReferenceLine,
-  ReferenceArea,
 } from 'recharts'
 
 export type ChartPoint = Record<string, string | number>
@@ -78,23 +77,11 @@ export default function StandingsChart({
 }) {
   const hasProjected = !!(projectedLabel && lastCompletedLabel)
 
-  // Include the 2 points before lastCompletedLabel as curve anchors for the projected
-  // segment so monotone interpolation has enough context to curve naturally into the
-  // projected point. The solid confirmed line covers that overlap at low opacity.
-  const lastCompletedIdx = hasProjected
-    ? data.findIndex(p => p.label === lastCompletedLabel)
-    : -1
-  const curveAnchorLabels = new Set(
-    lastCompletedIdx > 0
-      ? data.slice(Math.max(0, lastCompletedIdx - 2), lastCompletedIdx).map(p => p.label)
-      : []
-  )
-
-  // Pre-process into a single dataset at the chart level to avoid x-axis duplication.
-  // At the projected point: move member values to ${member}_proj keys, clear main keys
-  //   so the solid confirmed line stops cleanly there.
-  // At the last completed point and its 2 predecessors: copy values to ${member}_proj
-  //   keys so the dashed segment curves naturally into the projected point.
+  // Pre-process into a single dataset to avoid x-axis duplication.
+  // The dashed projected segment spans exactly two points: lastCompletedLabel → projectedLabel.
+  // At the projected point: move values to ${member}_proj keys, clear main keys so
+  //   the solid line stops there cleanly.
+  // At lastCompletedLabel: copy values to ${member}_proj so the dashed line starts there.
   const chartData = hasProjected
     ? data.map(p => {
         if (p.label === projectedLabel) {
@@ -102,7 +89,7 @@ export default function StandingsChart({
           for (const m of members) out[`${m}_proj`] = p[m]
           return out
         }
-        if (p.label === lastCompletedLabel || curveAnchorLabels.has(String(p.label))) {
+        if (p.label === lastCompletedLabel) {
           const out: ChartPoint = { ...p }
           for (const m of members) out[`${m}_proj`] = p[m]
           return out
@@ -134,29 +121,18 @@ export default function StandingsChart({
           wrapperStyle={{ fontSize: 12, fontFamily: 'var(--font-geist-mono)', paddingTop: 12 }}
         />
 
-        {/* Light shaded region marking the projected zone */}
-        {hasProjected && (
-          <ReferenceArea
-            x1={lastCompletedLabel}
-            x2={projectedLabel}
-            fill="#f0fdf4"
-            fillOpacity={0.7}
-            stroke="none"
-          />
-        )}
-
-        {/* Dashed border at the projected data point */}
+        {/* Dashed vertical line at the projected data point */}
         {projectedLabel && (
           <ReferenceLine
             x={projectedLabel}
-            stroke="#a7f3d0"
+            stroke="#cbd5e1"
             strokeWidth={1.5}
             strokeDasharray="5 4"
             label={{
-              value: '← projected',
+              value: 'projected',
               position: 'insideTopRight',
               fontSize: 9,
-              fill: '#6ee7b7',
+              fill: '#94a3b8',
               fontFamily: 'var(--font-geist-mono)',
               dy: 4,
             }}
