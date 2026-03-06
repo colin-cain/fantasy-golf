@@ -239,7 +239,7 @@ export default async function HomePage() {
                 <th className="px-5 py-3 text-left w-14">#</th>
                 <th className="px-5 py-3 text-left">Player</th>
                 <th className="px-5 py-3 text-right">Earnings</th>
-                {live && <th className="px-5 py-3 text-right text-emerald-500">Proj.</th>}
+                {live && <th className="px-5 py-3 text-right text-emerald-500">Current Week Proj.</th>}
                 {live && (
                   <th className="px-5 py-3 text-right">
                     <span className="block">Combined</span>
