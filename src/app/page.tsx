@@ -249,8 +249,8 @@ export default async function HomePage() {
                 <th className="px-5 py-3 text-left w-14">#</th>
                 <th className="px-5 py-3 text-left">Player</th>
                 <th className="px-5 py-3 text-right">Earnings</th>
-                {live && <th className="px-5 py-3 text-right text-slate-400 italic normal-case tracking-normal font-normal bg-green-50">Current Week Proj.</th>}
-                {live && <th className="px-5 py-3 text-right bg-green-50">Combined Proj.</th>}
+                {live && <th className="px-5 py-3 text-right italic">Current Week Proj.</th>}
+                {live && <th className="px-5 py-3 text-right italic">Combined Proj.</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
@@ -284,12 +284,12 @@ export default async function HomePage() {
                       )}
                     </td>
                     {live && (
-                      <td className="px-5 py-4 text-right font-mono text-slate-400 text-xs italic bg-green-50">
+                      <td className="px-5 py-4 text-right font-mono text-slate-400 text-xs italic">
                         {member.projected > 0 ? `~${formatDollars(member.projected)}` : '—'}
                       </td>
                     )}
                     {live && (
-                      <td className="px-5 py-4 text-right bg-green-50">
+                      <td className="px-5 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           {/* Projected rank badge — muted fill signals "not yet confirmed" */}
                           <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${RANK_BADGE_MUTED[projRank - 1] ?? 'bg-stone-100 text-slate-300'}`}>
