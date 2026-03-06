@@ -1,3 +1,5 @@
+'use client'
+
 import CountdownBanner from './CountdownBanner'
 
 type TickerPick = {
@@ -66,7 +68,11 @@ export default function TournamentBanner({ name, type, startDate, teeTime, inPro
                 const lastName = golfer.split(' ').slice(1).join(' ') || golfer
                 const scoreColor = total?.startsWith('-') ? 'text-red-600' : 'text-zinc-900'
                 const notStarted = !thru || thru === '0'
-                const thruDisplay = notStarted ? (teeTime ?? '–') : thru
+                const tsMs = teeTime ? parseInt(teeTime) : NaN
+                const formattedTeeTime = !isNaN(tsMs) && tsMs > 0
+                  ? new Date(tsMs).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+                  : (teeTime ?? '–')
+                const thruDisplay = notStarted ? formattedTeeTime : thru
                 return [
                   <span key={`item-${i}`} className="inline-flex items-center gap-2 px-5">
                     <span className="font-mono text-zinc-400 text-xs">{position ?? '–'}</span>

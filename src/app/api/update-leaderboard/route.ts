@@ -11,6 +11,18 @@ function parseMongo(val: unknown): number | string {
   return val as string
 }
 
+// Extracts a Unix ms timestamp from MongoDB { $date: { $numberLong: "..." } } format
+function parseMongoDateMs(val: unknown): number | null {
+  if (val && typeof val === 'object') {
+    const d = (val as Record<string, unknown>)['$date']
+    if (d && typeof d === 'object') {
+      const nl = (d as Record<string, unknown>)['$numberLong']
+      if (nl !== undefined) return parseInt(String(nl), 10)
+    }
+  }
+  return null
+}
+
 export async function GET(req: NextRequest) {
   // Accept either Vercel's Authorization: Bearer header (cron) or ?secret= query param (manual)
   const authHeader = req.headers.get('authorization')
@@ -135,16 +147,22 @@ export async function GET(req: NextRequest) {
     thru: string
     currentRound: unknown
     teeTime?: string
-  }) => ({
-    golfer_name: `${row.firstName} ${row.lastName}`,
-    position:    row.position,
-    total:       row.total,
-    thru:        row.thru,
-    round:       parseMongo(row.currentRound),
-    tee_time:    row.teeTime ?? null,
-    tournament_id: tournament.id,
-    last_updated:  new Date().toISOString(),
-  }))
+    teeTimeTimestamp?: unknown
+  }) => {
+    // Prefer the ms timestamp (timezone-agnostic) so the client can localise it;
+    // fall back to the raw time string (e.g. "11:55am") if not present.
+    const tsMs = parseMongoDateMs(row.teeTimeTimestamp)
+    return {
+      golfer_name: `${row.firstName} ${row.lastName}`,
+      position:    row.position,
+      total:       row.total,
+      thru:        row.thru,
+      round:       parseMongo(row.currentRound),
+      tee_time:    tsMs !== null ? String(tsMs) : (row.teeTime ?? null),
+      tournament_id: tournament.id,
+      last_updated:  new Date().toISOString(),
+    }
+  })
 
   const { error: upsertErr } = await supabase
     .from('leaderboard_cache')
