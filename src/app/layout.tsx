@@ -52,7 +52,7 @@ export default async function RootLayout({
   const banner = live ?? next
 
   // When live, fetch picks + leaderboard cache for the ticker
-  let tickerPicks: { member: string; golfer: string; position: string | null; total: string | null; thru: string | null; teeTime: string | null }[] = []
+  let tickerPicks: { member: string; golfer: string; position: string | null; total: string | null; roundScore: string | null; thru: string | null; teeTime: string | null }[] = []
   if (live) {
     const { data: picks } = await supabase
       .from('picks')
@@ -63,21 +63,22 @@ export default async function RootLayout({
       const golferNames = picks.map((p: { golfer_name: string }) => p.golfer_name)
       const { data: cache } = await supabase
         .from('leaderboard_cache')
-        .select('golfer_name, position, total, thru, tee_time')
+        .select('golfer_name, position, total, round_score, thru, tee_time')
         .in('golfer_name', golferNames)
 
       const cacheMap = Object.fromEntries(
-        (cache ?? []).map((r: { golfer_name: string; position: string; total: string; thru: string; tee_time: string }) => [r.golfer_name, r])
+        (cache ?? []).map((r: { golfer_name: string; position: string; total: string; round_score: string; thru: string; tee_time: string }) => [r.golfer_name, r])
       )
 
       tickerPicks = (picks as unknown as { golfer_name: string; league_members: { name: string } }[])
         .map(p => ({
-          member:   p.league_members.name,
-          golfer:   p.golfer_name,
-          position: cacheMap[p.golfer_name]?.position ?? null,
-          total:    cacheMap[p.golfer_name]?.total    ?? null,
-          thru:     cacheMap[p.golfer_name]?.thru     ?? null,
-          teeTime:  cacheMap[p.golfer_name]?.tee_time ?? null,
+          member:     p.league_members.name,
+          golfer:     p.golfer_name,
+          position:   cacheMap[p.golfer_name]?.position    ?? null,
+          total:      cacheMap[p.golfer_name]?.total        ?? null,
+          roundScore: cacheMap[p.golfer_name]?.round_score  ?? null,
+          thru:       cacheMap[p.golfer_name]?.thru         ?? null,
+          teeTime:    cacheMap[p.golfer_name]?.tee_time     ?? null,
         }))
         .sort((a, b) => {
           const posA = parseInt(a.position?.replace('T', '') ?? '999')

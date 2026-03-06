@@ -7,6 +7,7 @@ type TickerPick = {
   golfer: string
   position: string | null
   total: string | null
+  roundScore: string | null
   thru: string | null
   teeTime: string | null
 }
@@ -64,9 +65,10 @@ export default function TournamentBanner({ name, type, startDate, teeTime, inPro
           {/* Scrolling ticker track */}
           <div className="flex-1 overflow-hidden flex items-center">
             <div className="fgl-ticker-track flex items-stretch whitespace-nowrap">
-              {[...picks, ...picks].map(({ member, golfer, position, total, thru, teeTime }, i) => {
+              {[...picks, ...picks].map(({ member, golfer, position, total, roundScore, thru, teeTime }, i) => {
                 const lastName = golfer.split(' ').slice(1).join(' ') || golfer
                 const scoreColor = total?.startsWith('-') ? 'text-red-600' : 'text-zinc-900'
+                const roundColor = roundScore?.startsWith('-') ? 'text-red-500' : 'text-zinc-400'
                 const notStarted = !thru || thru === '0'
                 const tsMs = teeTime ? parseInt(teeTime) : NaN
                 const formattedTeeTime = !isNaN(tsMs) && tsMs > 0
@@ -79,6 +81,7 @@ export default function TournamentBanner({ name, type, startDate, teeTime, inPro
                     <span className="text-slate-800 text-xs font-semibold">{lastName}</span>
                     <span className="text-zinc-500 text-xs font-medium">({member})</span>
                     <span className={`font-mono font-bold text-xs ${scoreColor}`}>{total ?? '–'}</span>
+                    {roundScore && <span className={`font-mono text-xs ${roundColor}`}>({roundScore})</span>}
                     <span className="text-zinc-400 text-xs">{thruDisplay}</span>
                   </span>,
                   <span key={`sep-${i}`} className="inline-block w-px h-4 bg-stone-200 self-center flex-shrink-0" />,

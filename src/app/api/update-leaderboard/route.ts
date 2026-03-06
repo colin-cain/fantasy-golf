@@ -144,6 +144,7 @@ export async function GET(req: NextRequest) {
     lastName: string
     position: string
     total: string
+    currentRoundScore?: string
     thru: string
     currentRound: unknown
     teeTime?: string
@@ -153,12 +154,13 @@ export async function GET(req: NextRequest) {
     // fall back to the raw time string (e.g. "11:55am") if not present.
     const tsMs = parseMongoDateMs(row.teeTimeTimestamp)
     return {
-      golfer_name: `${row.firstName} ${row.lastName}`,
-      position:    row.position,
-      total:       row.total,
-      thru:        row.thru,
-      round:       parseMongo(row.currentRound),
-      tee_time:    tsMs !== null ? String(tsMs) : (row.teeTime ?? null),
+      golfer_name:  `${row.firstName} ${row.lastName}`,
+      position:     row.position,
+      total:        row.total,
+      round_score:  row.currentRoundScore ?? null,
+      thru:         row.thru,
+      round:        parseMongo(row.currentRound),
+      tee_time:     tsMs !== null ? String(tsMs) : (row.teeTime ?? null),
       tournament_id: tournament.id,
       last_updated:  new Date().toISOString(),
     }
