@@ -244,27 +244,25 @@ export default async function HomePage() {
         {/* Standings table */}
         <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
-            <colgroup>
-              <col className="w-12" />
-              <col />
-              {live && <col className="hidden md:table-column w-48" />}
-            </colgroup>
             <thead>
               <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
-                <th className="px-4 py-3 text-left">#</th>
-                <th className="px-4 py-3">
+                <th className="px-4 py-3 text-left w-12">#</th>
+                <th className="px-4 py-3 text-left">
                   <div className="flex justify-between items-center">
                     <span>Player</span>
+                    {/* Mobile only: earnings stay in this cell, so label them */}
                     {live && (
-                      <span className="normal-case tracking-normal text-[10px] text-slate-400">
-                        Season
+                      <span className="md:hidden normal-case tracking-normal text-[10px] text-slate-400">
+                        Season Earnings
                       </span>
                     )}
-                    {!live && <span>Cumulative Earnings</span>}
+                    {!live && <span>Season Earnings</span>}
                   </div>
                 </th>
+                {/* Desktop: season earnings gets its own column */}
+                <th className="hidden md:table-cell px-5 py-3 text-right w-44">Season Earnings</th>
                 {live && (
-                  <th className="hidden md:table-cell px-5 py-3 text-right normal-case tracking-normal font-normal text-[11px] italic border-l border-stone-100">
+                  <th className="hidden md:table-cell px-5 py-3 text-right normal-case tracking-normal font-normal text-[11px] italic border-l border-stone-100 w-44">
                     Projected
                   </th>
                 )}
@@ -287,17 +285,16 @@ export default async function HomePage() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      {/* Line 1: name + season earnings */}
+                      {/* Line 1: name + earnings (mobile only — desktop earnings are in own column) */}
                       <div className="flex justify-between items-baseline gap-2">
                         <span className="font-medium text-slate-900">{member.name}</span>
-                        <span className="font-mono text-slate-900 font-semibold shrink-0">
+                        <span className="md:hidden font-mono text-slate-900 font-semibold shrink-0">
                           {formatDollars(member.total_earnings)}
                         </span>
                       </div>
-                      {/* Line 2: projected sub-row — mobile shows all details, desktop shows movement only (combined in own column) */}
+                      {/* Sub-row: mobile full projected info, desktop rank + movement only */}
                       {live && (
                         <>
-                          {/* Mobile: full projected info */}
                           <div className="md:hidden mt-1 flex items-center gap-1.5 text-[11px]">
                             <span className="text-[9px] uppercase tracking-widest text-slate-300 font-medium shrink-0">Proj</span>
                             <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold shrink-0 ${RANK_BADGE_MUTED[projRank - 1] ?? 'bg-stone-100 text-slate-300'}`}>
@@ -314,7 +311,6 @@ export default async function HomePage() {
                             )}
                             <span className="font-mono text-slate-400 italic shrink-0">~{formatDollars(member.combined)}</span>
                           </div>
-                          {/* Desktop: just rank + movement (combined lives in its own column) */}
                           <div className="hidden md:flex mt-1 items-center gap-1.5 text-[11px]">
                             <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold shrink-0 ${RANK_BADGE_MUTED[projRank - 1] ?? 'bg-stone-100 text-slate-300'}`}>
                               {projRank}
@@ -333,6 +329,10 @@ export default async function HomePage() {
                           />
                         </div>
                       )}
+                    </td>
+                    {/* Desktop: season earnings column */}
+                    <td className="hidden md:table-cell px-5 py-3 text-right font-mono text-slate-900 font-semibold">
+                      {formatDollars(member.total_earnings)}
                     </td>
                     {/* Desktop: projected combined column */}
                     {live && (
