@@ -243,7 +243,7 @@ export default async function HomePage() {
 
         {/* Standings table */}
         <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
-          <table className="w-full text-sm table-fixed">
+          <table className="w-full text-sm md:table-fixed">
             <colgroup>
               <col className="w-12" />
               <col />
@@ -252,7 +252,7 @@ export default async function HomePage() {
             </colgroup>
             <thead>
               {live && (
-                <tr className="bg-stone-50 text-xs uppercase tracking-widest text-slate-400">
+                <tr className="hidden md:table-row bg-stone-50 text-xs uppercase tracking-widest text-slate-400">
                   <th colSpan={2} />
                   <th colSpan={2} className="px-5 pt-3 pb-0 text-center border-l border-stone-200 italic">
                     Projected
@@ -264,11 +264,11 @@ export default async function HomePage() {
                 <th className="px-4 py-3">
                   <div className="flex justify-between items-center">
                     <span>Player</span>
-                    <span>Cumulative Earnings</span>
+                    <span className="hidden md:inline">Cumulative Earnings</span>
                   </div>
                 </th>
-                {live && <th className="px-4 py-3 text-right italic border-l border-stone-200">Current Week</th>}
-                {live && <th className="px-4 py-3 text-right italic">Cumulative Earnings</th>}
+                {live && <th className="hidden md:table-cell px-4 py-3 text-right italic border-l border-stone-200">Current Week</th>}
+                {live && <th className="hidden md:table-cell px-4 py-3 text-right italic">Cumulative Earnings</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
@@ -304,12 +304,12 @@ export default async function HomePage() {
                       )}
                     </td>
                     {live && (
-                      <td className="px-4 py-3 text-right font-mono text-slate-400 text-xs italic border-l border-stone-200">
+                      <td className="hidden md:table-cell px-4 py-3 text-right font-mono text-slate-400 text-xs italic border-l border-stone-200">
                         {member.projected > 0 ? `~${formatDollars(member.projected)}` : '—'}
                       </td>
                     )}
                     {live && (
-                      <td className="px-4 py-3 text-right">
+                      <td className="hidden md:table-cell px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
                           {/* Projected rank badge — muted fill signals "not yet confirmed" */}
                           <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${RANK_BADGE_MUTED[projRank - 1] ?? 'bg-stone-100 text-slate-300'}`}>
