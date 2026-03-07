@@ -245,16 +245,13 @@ export default async function HomePage() {
         <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
           <table className="w-full text-sm table-fixed">
             <colgroup>
-              <col className="w-[20%]" />
+              <col className="w-[28%]" />
               <col />
               <col className="w-[26%]" />
             </colgroup>
             <thead>
               <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
-                <th className="px-2 sm:px-4 py-3 text-left tracking-tight sm:tracking-widest">
-                  <span className="sm:hidden">Pos.</span>
-                  <span className="hidden sm:inline">Position</span>
-                </th>
+                <th className="px-2 sm:px-4 py-3 text-left tracking-tight">Position</th>
                 <th className="px-2 sm:px-4 py-3 text-left">Player</th>
                 <th className="px-2 sm:px-5 py-3 text-right leading-tight tracking-tight">Cumulative Earnings</th>
               </tr>
@@ -300,17 +297,14 @@ export default async function HomePage() {
               </div>
               <table className="w-full text-sm table-fixed">
                 <colgroup>
-                  <col className="w-[20%]" />
+                  <col className="w-[28%]" />
                   <col />
                   <col className="w-[20%]" />
                   <col className="w-[26%]" />
                 </colgroup>
                 <thead>
                   <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
-                    <th className="px-2 sm:px-4 py-3 text-left tracking-tight sm:tracking-widest">
-                      <span className="sm:hidden">Pos.</span>
-                      <span className="hidden sm:inline">Position</span>
-                    </th>
+                    <th className="px-2 sm:px-4 py-3 text-left tracking-tight">Position</th>
                     <th className="px-2 sm:px-4 py-3 text-left">Player</th>
                     <th className="px-2 sm:px-5 py-3 text-right leading-tight tracking-tight">This Week</th>
                     <th className="px-2 sm:px-5 py-3 text-right leading-tight tracking-tight">Cumulative Earnings</th>
