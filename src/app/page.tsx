@@ -247,7 +247,7 @@ export default async function HomePage() {
             <colgroup>
               <col className="w-[20%]" />
               <col />
-              <col className="hidden md:table-column w-[26%]" />
+              <col className="w-[26%]" />
             </colgroup>
             <thead>
               <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
@@ -255,13 +255,8 @@ export default async function HomePage() {
                   <span className="sm:hidden">Pos.</span>
                   <span className="hidden sm:inline">Position</span>
                 </th>
-                <th className="px-2 sm:px-4 py-3 text-left">
-                  <div className="flex justify-between items-center">
-                    <span>Player</span>
-                    <span className="md:hidden">Cumulative Earnings</span>
-                  </div>
-                </th>
-                <th className="hidden md:table-cell px-5 py-3 text-right">Cumulative Earnings</th>
+                <th className="px-2 sm:px-4 py-3 text-left">Player</th>
+                <th className="px-2 sm:px-5 py-3 text-right leading-tight tracking-tight">Cumulative Earnings</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
@@ -275,19 +270,14 @@ export default async function HomePage() {
                       </div>
                     </td>
                     <td className="px-2 sm:px-4 py-3">
-                      <div className="flex justify-between items-baseline gap-2">
-                        <span className="font-medium text-slate-900">{member.name}</span>
-                        <span className="md:hidden font-mono text-slate-900 font-semibold shrink-0">
-                          {formatDollars(member.total_earnings)}
-                        </span>
-                      </div>
+                      <span className="font-medium text-slate-900">{member.name}</span>
                       {!live && (
                         <div className="mt-1.5 h-1 rounded-full bg-stone-100 overflow-hidden">
                           <div className="h-full rounded-full bg-emerald-400" style={{ width: `${pct}%` }} />
                         </div>
                       )}
                     </td>
-                    <td className="hidden md:table-cell px-5 py-3 text-right font-mono text-slate-900 font-semibold">
+                    <td className="px-2 sm:px-5 py-3 text-right font-mono text-slate-900 font-semibold text-xs sm:text-sm">
                       {formatDollars(member.total_earnings)}
                     </td>
                   </tr>
