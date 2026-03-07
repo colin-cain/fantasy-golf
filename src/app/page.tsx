@@ -261,15 +261,15 @@ export default async function HomePage() {
                     <span>Player</span>
                     {live && (
                       <span className="md:hidden normal-case tracking-normal text-[10px] text-slate-400">
-                        Season Earnings
+                        Cumulative Earnings
                       </span>
                     )}
-                    {!live && <span>Season Earnings</span>}
+                    {!live && <span>Cumulative Earnings</span>}
                   </div>
                 </th>
-                <th className="hidden md:table-cell px-5 py-3 text-right">Season Earnings</th>
+                <th className="hidden md:table-cell px-5 py-3 text-right">Cumulative Earnings</th>
                 {live && <th className="hidden md:table-cell px-5 py-3 text-right italic normal-case tracking-normal border-l border-stone-200">This Week</th>}
-                {live && <th className="hidden md:table-cell px-5 py-3 text-right italic normal-case tracking-normal">Season Earnings</th>}
+                {live && <th className="hidden md:table-cell px-5 py-3 text-right italic normal-case tracking-normal">Cumulative Earnings</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
