@@ -242,7 +242,7 @@ export default async function HomePage() {
         </div>
 
         {/* Standings table */}
-        <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
+        <div className="max-w-2xl bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
@@ -260,9 +260,9 @@ export default async function HomePage() {
                   </div>
                 </th>
                 {/* Desktop: season earnings gets its own column */}
-                <th className="hidden md:table-cell px-5 py-3 text-right w-44">Season Earnings</th>
+                <th className="hidden md:table-cell px-5 py-3 text-right">Season Earnings</th>
                 {live && (
-                  <th className="hidden md:table-cell px-5 py-3 text-right normal-case tracking-normal font-normal text-[11px] italic border-l border-stone-100 w-44">
+                  <th className="hidden md:table-cell px-5 py-3 text-right normal-case tracking-normal font-normal text-[11px] italic border-l border-stone-100">
                     Projected
                   </th>
                 )}
