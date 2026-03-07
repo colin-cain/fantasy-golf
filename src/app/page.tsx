@@ -264,6 +264,10 @@ export default async function HomePage() {
                 <th className="px-4 py-3">
                   <div className="flex justify-between items-center">
                     <span>Player</span>
+                    {live
+                      ? <span className="md:hidden italic text-slate-300">projected →</span>
+                      : null
+                    }
                     <span className="hidden md:inline">Cumulative Earnings</span>
                   </div>
                 </th>
@@ -294,6 +298,23 @@ export default async function HomePage() {
                           ${member.total_earnings.toLocaleString()}
                         </span>
                       </div>
+                      {/* Mobile-only: projected info folded into this cell */}
+                      {live && (
+                        <div className="md:hidden mt-1.5 flex items-center justify-between text-[11px] font-mono italic text-slate-400">
+                          <span>
+                            {member.projected > 0 ? `~${formatDollars(member.projected)} this wk` : '—'}
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold ${RANK_BADGE_MUTED[projRank - 1] ?? 'bg-stone-100 text-slate-300'}`}>
+                              {projRank}
+                            </div>
+                            {delta > 0 && <span className="not-italic text-emerald-500">↑{delta}</span>}
+                            {delta < 0 && <span className="not-italic text-orange-400">↓{Math.abs(delta)}</span>}
+                            {delta === 0 && <span className="not-italic text-slate-300">→</span>}
+                            <span>~{formatDollars(member.combined)}</span>
+                          </div>
+                        </div>
+                      )}
                       {!live && (
                         <div className="mt-1.5 h-1 rounded-full bg-stone-100 overflow-hidden">
                           <div
