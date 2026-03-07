@@ -249,7 +249,7 @@ export default async function HomePage() {
             <thead>
               <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
                 <th className="px-2 sm:px-4 py-3 text-left tracking-tight">Position</th>
-                <th className="px-2 sm:px-4 py-3 text-left">Player</th>
+                <th className="px-2 sm:px-4 py-3 text-left tracking-tight">Player</th>
                 <th className="px-2 sm:px-5 py-3 text-right leading-tight tracking-tight">Cumulative Earnings</th>
               </tr>
             </thead>
@@ -302,7 +302,7 @@ export default async function HomePage() {
                 <thead>
                   <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
                     <th className="px-2 sm:px-4 py-3 text-left tracking-tight">Position</th>
-                    <th className="px-2 sm:px-4 py-3 text-left">Player</th>
+                    <th className="px-2 sm:px-4 py-3 text-left tracking-tight">Player</th>
                     <th className="px-2 sm:px-5 py-3 text-right leading-tight tracking-tight">This Week</th>
                     <th className="px-2 sm:px-5 py-3 text-right leading-tight tracking-tight">Cumulative Earnings</th>
                   </tr>
