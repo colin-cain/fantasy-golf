@@ -247,6 +247,7 @@ export default async function HomePage() {
             <colgroup>
               <col className="w-12" />
               <col />
+              {live && <col className="hidden md:table-column w-48" />}
             </colgroup>
             <thead>
               <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
@@ -262,6 +263,11 @@ export default async function HomePage() {
                     {!live && <span>Cumulative Earnings</span>}
                   </div>
                 </th>
+                {live && (
+                  <th className="hidden md:table-cell px-5 py-3 text-right normal-case tracking-normal font-normal text-[11px] italic border-l border-stone-100">
+                    Projected
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
@@ -288,24 +294,36 @@ export default async function HomePage() {
                           {formatDollars(member.total_earnings)}
                         </span>
                       </div>
-                      {/* Line 2: projected info */}
+                      {/* Line 2: projected sub-row — mobile shows all details, desktop shows movement only (combined in own column) */}
                       {live && (
-                        <div className="mt-1 flex items-center gap-1.5 text-[11px]">
-                          <span className="text-[9px] uppercase tracking-widest text-slate-300 font-medium shrink-0">Proj</span>
-                          <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold shrink-0 ${RANK_BADGE_MUTED[projRank - 1] ?? 'bg-stone-100 text-slate-300'}`}>
-                            {projRank}
+                        <>
+                          {/* Mobile: full projected info */}
+                          <div className="md:hidden mt-1 flex items-center gap-1.5 text-[11px]">
+                            <span className="text-[9px] uppercase tracking-widest text-slate-300 font-medium shrink-0">Proj</span>
+                            <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold shrink-0 ${RANK_BADGE_MUTED[projRank - 1] ?? 'bg-stone-100 text-slate-300'}`}>
+                              {projRank}
+                            </div>
+                            {delta > 0 && <span className="font-semibold text-emerald-500">↑{delta}</span>}
+                            {delta < 0 && <span className="font-semibold text-orange-400">↓{Math.abs(delta)}</span>}
+                            {delta === 0 && <span className="text-slate-300">–</span>}
+                            {member.projected > 0 && (
+                              <>
+                                <span className="font-mono text-slate-400 italic shrink-0">~{formatDollars(member.projected)} wk</span>
+                                <span className="text-slate-200">·</span>
+                              </>
+                            )}
+                            <span className="font-mono text-slate-400 italic shrink-0">~{formatDollars(member.combined)}</span>
                           </div>
-                          {delta > 0 && <span className="font-semibold text-emerald-500">↑{delta}</span>}
-                          {delta < 0 && <span className="font-semibold text-orange-400">↓{Math.abs(delta)}</span>}
-                          {delta === 0 && <span className="text-slate-300">–</span>}
-                          {member.projected > 0 && (
-                            <>
-                              <span className="font-mono text-slate-400 italic shrink-0">~{formatDollars(member.projected)} wk</span>
-                              <span className="text-slate-200">·</span>
-                            </>
-                          )}
-                          <span className="font-mono text-slate-400 italic shrink-0">~{formatDollars(member.combined)}</span>
-                        </div>
+                          {/* Desktop: just rank + movement (combined lives in its own column) */}
+                          <div className="hidden md:flex mt-1 items-center gap-1.5 text-[11px]">
+                            <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold shrink-0 ${RANK_BADGE_MUTED[projRank - 1] ?? 'bg-stone-100 text-slate-300'}`}>
+                              {projRank}
+                            </div>
+                            {delta > 0 && <span className="font-semibold text-emerald-500">↑{delta}</span>}
+                            {delta < 0 && <span className="font-semibold text-orange-400">↓{Math.abs(delta)}</span>}
+                            {delta === 0 && <span className="text-slate-300">–</span>}
+                          </div>
+                        </>
                       )}
                       {!live && (
                         <div className="mt-1.5 h-1 rounded-full bg-stone-100 overflow-hidden">
@@ -316,6 +334,17 @@ export default async function HomePage() {
                         </div>
                       )}
                     </td>
+                    {/* Desktop: projected combined column */}
+                    {live && (
+                      <td className="hidden md:table-cell px-5 py-3 text-right border-l border-stone-100">
+                        <div className="flex flex-col items-end gap-0.5">
+                          {member.projected > 0 && (
+                            <span className="font-mono text-slate-400 italic text-xs">+{formatDollars(member.projected)} wk</span>
+                          )}
+                          <span className="font-mono text-slate-700 font-semibold">~{formatDollars(member.combined)}</span>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 )
               })}
