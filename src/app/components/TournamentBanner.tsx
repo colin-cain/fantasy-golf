@@ -75,18 +75,22 @@ export default function TournamentBanner({ name, type, startDate, teeTime, inPro
         `}</style>
         <div className="flex items-stretch h-10">
 
-          {/* Fixed left: LIVE + tournament name + type badge + last updated */}
-          <div className="flex-shrink-0 flex items-center gap-2 px-4 w-[411px] overflow-hidden border-r border-stone-100">
+          {/* Fixed left: LIVE label — compact on mobile, full on sm+ */}
+          <div className="flex-shrink-0 flex items-center gap-2 px-3 sm:px-4 w-20 sm:w-[411px] overflow-hidden border-r border-stone-100">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
-            <span className="text-emerald-700 text-[10px] font-semibold uppercase tracking-widest whitespace-nowrap flex-shrink-0">In Progress</span>
-            <span className="ml-2 text-zinc-700 text-xs font-medium whitespace-nowrap">{name}</span>
+            <span className="text-emerald-700 text-[10px] font-semibold uppercase tracking-widest whitespace-nowrap flex-shrink-0">
+              <span className="sm:hidden">Live</span>
+              <span className="hidden sm:inline">In Progress</span>
+            </span>
+            {/* Name, badge, and timestamp only visible on sm+ */}
+            <span className="hidden sm:block ml-2 text-zinc-700 text-xs font-medium whitespace-nowrap">{name}</span>
             {TYPE_LABELS[type] && (
-              <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded-full font-medium leading-none ${TYPE_STYLES[type] ?? ''}`}>
+              <span className={`hidden sm:inline-flex ml-2 text-[10px] px-1.5 py-0.5 rounded-full font-medium leading-none ${TYPE_STYLES[type] ?? ''}`}>
                 {TYPE_LABELS[type]}
               </span>
             )}
             {timeAgo && (
-              <span className="ml-auto text-[10px] text-zinc-400 whitespace-nowrap flex-shrink-0">
+              <span className="hidden sm:block ml-auto text-[10px] text-zinc-400 whitespace-nowrap flex-shrink-0">
                 {timeAgo}
               </span>
             )}

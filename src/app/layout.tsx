@@ -98,12 +98,12 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} ${bebasNeue.variable} antialiased`}>
-        <nav className="bg-green-900 border-b border-green-800" style={{ paddingRight: 'max(1rem, calc((100vw - 56rem) / 2 + 1rem))' }}>
+        <nav className="bg-green-900 border-b border-green-800 pl-4" style={{ paddingRight: 'max(1rem, calc((100vw - 56rem) / 2 + 1rem))' }}>
           <div className="flex flex-col items-start sm:flex-row sm:items-center sm:justify-between sm:h-14 py-3 sm:py-0 gap-2.5 sm:gap-0">
 
-            {/* Logo lockup — w-[411px] matches tournament section so right edges align at same x */}
-            <div className="w-[411px] flex-shrink-0 flex items-center">
-              <FGLLogo className="h-9 w-auto ml-auto" />
+            {/* Logo lockup — full 411px only on sm+; auto-width on mobile to avoid overflow */}
+            <div className="sm:w-[411px] flex-shrink-0 flex items-center">
+              <FGLLogo className="h-9 w-auto sm:ml-auto" />
             </div>
 
             <NavLinks />
