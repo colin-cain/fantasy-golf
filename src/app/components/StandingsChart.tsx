@@ -135,6 +135,8 @@ export default function StandingsChart({
                 strokeWidth={2}
                 dot={(props: any) => {
                   const { cx, cy } = props
+                  // Guard against NaN cy (undefined value at projected point renders at y=0)
+                  if (typeof cy !== 'number' || isNaN(cy)) return <g key={`dot-${member}-${cx}`} />
                   return <circle key={`dot-${member}-${cx}`} cx={cx} cy={cy} r={3} fill={color} stroke="none" />
                 }}
                 activeDot={{ r: 5, strokeWidth: 0 }}
