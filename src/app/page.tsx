@@ -243,16 +243,22 @@ export default async function HomePage() {
 
         {/* Actual standings table */}
         <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm table-fixed">
+            <colgroup>
+              <col className="w-[14%]" />
+              <col />
+              <col className="hidden md:table-column w-[26%]" />
+            </colgroup>
             <thead>
               <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
-                <th className="px-4 py-3 text-left w-16">Position</th>
-                <th className="px-4 py-3">
+                <th className="px-4 py-3 text-left">Position</th>
+                <th className="px-4 py-3 text-left">
                   <div className="flex justify-between items-center">
                     <span>Player</span>
-                    <span className="normal-case tracking-normal text-[10px] text-slate-400">Cumulative Earnings</span>
+                    <span className="md:hidden normal-case tracking-normal text-[10px]">Cumulative Earnings</span>
                   </div>
                 </th>
+                <th className="hidden md:table-cell px-5 py-3 text-right">Cumulative Earnings</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
@@ -268,7 +274,7 @@ export default async function HomePage() {
                     <td className="px-4 py-3">
                       <div className="flex justify-between items-baseline gap-2">
                         <span className="font-medium text-slate-900">{member.name}</span>
-                        <span className="font-mono text-slate-900 font-semibold shrink-0">
+                        <span className="md:hidden font-mono text-slate-900 font-semibold shrink-0">
                           {formatDollars(member.total_earnings)}
                         </span>
                       </div>
@@ -277,6 +283,9 @@ export default async function HomePage() {
                           <div className="h-full rounded-full bg-emerald-400" style={{ width: `${pct}%` }} />
                         </div>
                       )}
+                    </td>
+                    <td className="hidden md:table-cell px-5 py-3 text-right font-mono text-slate-900 font-semibold">
+                      {formatDollars(member.total_earnings)}
                     </td>
                   </tr>
                 )
@@ -296,14 +305,20 @@ export default async function HomePage() {
                 <span className="text-xs uppercase tracking-widest text-slate-400 font-medium">Projected Standings</span>
                 <span className="ml-auto text-[11px] text-slate-400">{live.tournamentName}{live.purse > 0 ? ` · $${(live.purse / 1_000_000).toFixed(0)}M purse` : ''}</span>
               </div>
-              <table className="w-full text-sm">
+              <table className="w-full text-sm table-fixed">
+                <colgroup>
+                  <col className="w-[14%]" />
+                  <col />
+                  <col className="hidden md:table-column w-[20%]" />
+                  <col className="hidden md:table-column w-[26%]" />
+                </colgroup>
                 <thead>
                   <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
                     <th className="px-4 py-3 text-left">Position</th>
                     <th className="px-4 py-3 text-left">
                       <div className="flex justify-between items-center">
                         <span>Player</span>
-                        <span className="md:hidden normal-case tracking-normal text-[10px] text-slate-400">Cumulative</span>
+                        <span className="md:hidden normal-case tracking-normal text-[10px]">Cumulative Earnings</span>
                       </div>
                     </th>
                     <th className="hidden md:table-cell px-5 py-3 text-right">This Week</th>
