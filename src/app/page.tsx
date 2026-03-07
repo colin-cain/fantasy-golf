@@ -243,39 +243,25 @@ export default async function HomePage() {
 
         {/* Standings table */}
         <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
-          <table className="w-full text-sm md:table-fixed">
+          <table className="w-full text-sm">
             <colgroup>
               <col className="w-12" />
               <col />
-              {live && <col className="w-1/4" />}
-              {live && <col className="w-1/4" />}
             </colgroup>
             <thead>
-              {live && (
-                <tr className="hidden md:table-row bg-stone-50 text-xs uppercase tracking-widest text-slate-400">
-                  <th colSpan={2} />
-                  <th colSpan={2} className="px-5 pt-3 pb-0 text-center border-l border-stone-200 italic">
-                    Projected
-                  </th>
-                </tr>
-              )}
               <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
                 <th className="px-4 py-3 text-left">#</th>
                 <th className="px-4 py-3">
                   <div className="flex justify-between items-center">
                     <span>Player</span>
-                    {/* Mobile: label the right-aligned earnings figure */}
                     {live && (
-                      <span className="md:hidden normal-case tracking-normal text-[10px] text-slate-400">
+                      <span className="normal-case tracking-normal text-[10px] text-slate-400">
                         Season
                       </span>
                     )}
-                    {live && <span className="hidden md:inline">Cumulative Earnings</span>}
                     {!live && <span>Cumulative Earnings</span>}
                   </div>
                 </th>
-                {live && <th className="hidden md:table-cell px-4 py-3 text-right italic border-l border-stone-200">Current Week</th>}
-                {live && <th className="hidden md:table-cell px-4 py-3 text-right italic">Cumulative Earnings</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
@@ -299,13 +285,12 @@ export default async function HomePage() {
                       <div className="flex justify-between items-baseline gap-2">
                         <span className="font-medium text-slate-900">{member.name}</span>
                         <span className="font-mono text-slate-900 font-semibold shrink-0">
-                          <span className="md:hidden">{formatDollars(member.total_earnings)}</span>
-                          <span className="hidden md:inline">${member.total_earnings.toLocaleString()}</span>
+                          {formatDollars(member.total_earnings)}
                         </span>
                       </div>
-                      {/* Line 2: projected info — mobile only */}
+                      {/* Line 2: projected info */}
                       {live && (
-                        <div className="md:hidden mt-1 flex items-center gap-1.5 text-[11px]">
+                        <div className="mt-1 flex items-center gap-1.5 text-[11px]">
                           <span className="text-[9px] uppercase tracking-widest text-slate-300 font-medium shrink-0">Proj</span>
                           <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold shrink-0 ${RANK_BADGE_MUTED[projRank - 1] ?? 'bg-stone-100 text-slate-300'}`}>
                             {projRank}
@@ -331,24 +316,6 @@ export default async function HomePage() {
                         </div>
                       )}
                     </td>
-                    {live && (
-                      <td className="hidden md:table-cell px-4 py-3 text-right font-mono text-slate-400 text-xs italic border-l border-stone-200">
-                        {member.projected > 0 ? `~${formatDollars(member.projected)}` : '—'}
-                      </td>
-                    )}
-                    {live && (
-                      <td className="hidden md:table-cell px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${RANK_BADGE_MUTED[projRank - 1] ?? 'bg-stone-100 text-slate-300'}`}>
-                            {projRank}
-                          </div>
-                          {delta > 0 && <span className="text-[11px] font-semibold text-emerald-500 tabular-nums">↑{delta}</span>}
-                          {delta < 0 && <span className="text-[11px] font-semibold text-orange-400 tabular-nums">↓{Math.abs(delta)}</span>}
-                          {delta === 0 && <span className="text-[11px] text-slate-300">→</span>}
-                          <span className="font-mono text-slate-400 italic">~{formatDollars(member.combined)}</span>
-                        </div>
-                      </td>
-                    )}
                   </tr>
                 )
               })}
@@ -356,8 +323,7 @@ export default async function HomePage() {
           </table>
           {live && live.purse > 0 && (
             <p className="text-[11px] text-slate-400 text-right px-5 py-2.5 border-t border-stone-100">
-              <span className="md:hidden">Projected · {live.tournamentName}</span>
-              <span className="hidden md:inline">Projected based on current leaderboard position · {live.tournamentName} · ${live.purse.toLocaleString()} purse</span>
+              Projected · {live.tournamentName} · ${live.purse.toLocaleString()} purse
             </p>
           )}
           {live && live.purse === 0 && (
