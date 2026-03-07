@@ -238,7 +238,7 @@ export default async function HomePage() {
         {/* Actual standings table */}
         <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
           <div className="px-5 py-3 border-b border-stone-100 flex items-center gap-2">
-            <span className="text-xs uppercase tracking-widest text-slate-400 font-medium">Current Standings</span>
+            <span className="text-xs uppercase tracking-widest text-slate-400 font-medium max-w-[7rem] sm:max-w-none">Current Standings</span>
           </div>
           <table className="w-full text-sm table-fixed">
             <colgroup>
