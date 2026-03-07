@@ -94,6 +94,10 @@ export default function StandingsChart({
       })
     : data
 
+  // Dashed line starts right as the solid lines finish, then builds slowly.
+  const dashedBegin = 1450   // slightly before 1500ms to avoid scheduling gaps
+  const dashedDuration = 2500 // slow, deliberate build
+
   return (
     <ResponsiveContainer width="100%" height={280}>
       <LineChart data={chartData} margin={{ top: 8, right: 16, left: 8, bottom: 0 }}>
@@ -160,8 +164,9 @@ export default function StandingsChart({
                   }}
                   legendType="none"
                   activeDot={false}
-                  animationBegin={1500}
-                  animationDuration={400}
+                  animationBegin={dashedBegin}
+                  animationDuration={dashedDuration}
+                  animationEasing="ease-out"
                 />
               )}
             </React.Fragment>
