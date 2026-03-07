@@ -245,7 +245,7 @@ export default async function HomePage() {
         <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
           <table className="w-full text-sm table-fixed">
             <colgroup>
-              <col className="w-[14%]" />
+              <col className="w-[20%]" />
               <col />
               <col className="hidden md:table-column w-[26%]" />
             </colgroup>
@@ -258,7 +258,7 @@ export default async function HomePage() {
                 <th className="px-2 sm:px-4 py-3 text-left">
                   <div className="flex justify-between items-center">
                     <span>Player</span>
-                    <span className="md:hidden normal-case tracking-normal text-[10px]">Cumulative Earnings</span>
+                    <span className="md:hidden">Cumulative Earnings</span>
                   </div>
                 </th>
                 <th className="hidden md:table-cell px-5 py-3 text-right">Cumulative Earnings</th>
@@ -310,7 +310,7 @@ export default async function HomePage() {
               </div>
               <table className="w-full text-sm table-fixed">
                 <colgroup>
-                  <col className="w-[14%]" />
+                  <col className="w-[20%]" />
                   <col />
                   <col className="w-[20%]" />
                   <col className="w-[26%]" />
@@ -322,14 +322,8 @@ export default async function HomePage() {
                       <span className="hidden sm:inline">Position</span>
                     </th>
                     <th className="px-2 sm:px-4 py-3 text-left">Player</th>
-                    <th className="px-2 sm:px-5 py-3 text-right tracking-tight sm:tracking-widest">
-                      <span className="sm:hidden">Wk.</span>
-                      <span className="hidden sm:inline">This Week</span>
-                    </th>
-                    <th className="px-2 sm:px-5 py-3 text-right tracking-tight sm:tracking-widest">
-                      <span className="sm:hidden">Total</span>
-                      <span className="hidden sm:inline">Cumulative Earnings</span>
-                    </th>
+                    <th className="px-2 sm:px-5 py-3 text-right leading-tight tracking-tight">This Week</th>
+                    <th className="px-2 sm:px-5 py-3 text-right leading-tight tracking-tight">Cumulative Earnings</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100">
