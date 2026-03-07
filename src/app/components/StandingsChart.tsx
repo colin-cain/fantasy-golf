@@ -9,7 +9,6 @@ import {
   YAxis,
   Tooltip,
   Legend,
-  Customized,
 } from 'recharts'
 
 export type ChartPoint = Record<string, string | number>
@@ -35,7 +34,6 @@ function CustomTooltip({ active, payload, label }: any) {
   const tournament = payload[0]?.payload?.tournament ?? label
   const isProjected = typeof tournament === 'string' && tournament.includes('(Live)')
 
-  // Normalize dataKeys: strip _proj suffix, deduplicate by member name
   const seen = new Set<string>()
   const entries = [...payload]
     .map((e: any) => ({ ...e, memberName: String(e.dataKey).replace(/_proj$/, '') }))
@@ -64,97 +62,6 @@ function CustomTooltip({ active, payload, label }: any) {
   )
 }
 
-// Draws the projected segment for each member as a custom cubic bezier via
-// Recharts' <Customized> component. Computes the exit slope of each solid line
-// at lastCompleted (slope of the final confirmed segment) and uses it as the
-// bezier's initial tangent — guaranteeing C1 continuity (smooth join, no kink).
-function ProjectedSegmentsRenderer({
-  xAxisMap,
-  yAxisMap,
-  members,
-  chartData,
-  lastCompletedLabel,
-  projectedLabel,
-}: any) {
-  const xAxis = Object.values(xAxisMap as Record<string, any>)[0]
-  const yAxis = Object.values(yAxisMap as Record<string, any>)[0]
-  if (!xAxis?.scale || !yAxis?.scale) return null
-
-  const lastIdx = (chartData as ChartPoint[]).findIndex((p) => p.label === lastCompletedLabel)
-  const projPoint = (chartData as ChartPoint[]).find((p) => p.label === projectedLabel)
-  if (lastIdx < 0 || !projPoint) return null
-
-  const lastPoint = chartData[lastIdx] as ChartPoint
-  const prevPoint = lastIdx > 0 ? (chartData[lastIdx - 1] as ChartPoint) : null
-
-  // scalePoint (used by Recharts for categorical LineChart axes) has bandwidth() = 0
-  const halfBand = (xAxis.scale.bandwidth?.() ?? 0) / 2
-  const x1 = (xAxis.scale(lastCompletedLabel) as number) + halfBand
-  const x2 = (xAxis.scale(projectedLabel) as number) + halfBand
-
-  return (
-    <g>
-      {(members as string[]).map((member) => {
-        const color = MEMBER_COLORS[member] ?? '#94a3b8'
-
-        const y1Raw = lastPoint[member]
-        const y2Raw = projPoint[`${member}_proj`]
-        if (typeof y1Raw !== 'number' || typeof y2Raw !== 'number') return null
-
-        const y1 = yAxis.scale(y1Raw) as number
-        const y2 = yAxis.scale(y2Raw) as number
-        if (isNaN(y1) || isNaN(y2)) return null
-
-        // Exit slope at lastCompleted = slope of the preceding confirmed segment.
-        // Recharts' monotone sets the endpoint slope to the slope of the last segment,
-        // so matching it here gives perfect C1 continuity.
-        let slope = 0
-        if (prevPoint) {
-          const xPrev = (xAxis.scale(prevPoint.label) as number) + halfBand
-          const yPrevRaw = prevPoint[member]
-          if (typeof yPrevRaw === 'number') {
-            const yPrev = yAxis.scale(yPrevRaw) as number
-            if (!isNaN(yPrev) && x1 !== xPrev) {
-              slope = (y1 - yPrev) / (x1 - xPrev)
-            }
-          }
-        }
-
-        // Cubic bezier: CP1 follows the exit tangent, CP2 arrives horizontally
-        const dx = (x2 - x1) / 3
-        const cp1x = x1 + dx
-        const cp1y = y1 + slope * dx
-        const cp2x = x2 - dx
-        const cp2y = y2
-        const d = `M${x1},${y1} C${cp1x},${cp1y} ${cp2x},${cp2y} ${x2},${y2}`
-
-        return (
-          <g key={member}>
-            <path
-              d={d}
-              stroke={color}
-              strokeWidth={1.5}
-              strokeOpacity={0.45}
-              strokeDasharray="5 4"
-              fill="none"
-            />
-            {/* Hollow dot at the projected endpoint */}
-            <circle
-              cx={x2}
-              cy={y2}
-              r={4}
-              fill="white"
-              stroke={color}
-              strokeWidth={2}
-              strokeOpacity={0.5}
-            />
-          </g>
-        )
-      })}
-    </g>
-  )
-}
-
 export default function StandingsChart({
   data,
   members,
@@ -168,13 +75,18 @@ export default function StandingsChart({
 }) {
   const hasProjected = !!(projectedLabel && lastCompletedLabel)
 
-  // The solid lines use member keys. At the projected label we omit member values
-  // so the solid line stops cleanly at lastCompleted. We store _proj values at the
-  // projected label solely so ProjectedSegmentsRenderer can read the projected Y.
+  // _proj values only at lastCompletedLabel (anchor) and projectedLabel (endpoint).
+  // The dashed segment is a straight line between exactly these two points —
+  // no historical overlap, no bleed-through.
   const chartData = hasProjected
     ? data.map((p) => {
         if (p.label === projectedLabel) {
           const out: ChartPoint = { label: p.label, tournament: p.tournament }
+          for (const m of members) out[`${m}_proj`] = p[m]
+          return out
+        }
+        if (p.label === lastCompletedLabel) {
+          const out: ChartPoint = { ...p }
           for (const m of members) out[`${m}_proj`] = p[m]
           return out
         }
@@ -208,41 +120,52 @@ export default function StandingsChart({
         {members.map((member) => {
           const color = MEMBER_COLORS[member] ?? '#94a3b8'
           return (
-            <Line
-              key={member}
-              type="monotone"
-              dataKey={member}
-              stroke={color}
-              strokeWidth={2}
-              dot={(props: any) => {
-                const { cx, cy } = props
-                // Guard: undefined value at projected point renders at y=0 in SVG
-                if (typeof cy !== 'number' || isNaN(cy)) return <g key={`dot-${member}-${cx}`} />
-                return <circle key={`dot-${member}-${cx}`} cx={cx} cy={cy} r={3} fill={color} stroke="none" />
-              }}
-              activeDot={{ r: 5, strokeWidth: 0 }}
-              legendType="circle"
-            />
+            <React.Fragment key={member}>
+              {/* Solid confirmed line */}
+              <Line
+                type="monotone"
+                dataKey={member}
+                stroke={color}
+                strokeWidth={2}
+                dot={(props: any) => {
+                  const { cx, cy } = props
+                  if (typeof cy !== 'number' || isNaN(cy)) return <g key={`dot-${member}-${cx}`} />
+                  return <circle key={`dot-${member}-${cx}`} cx={cx} cy={cy} r={3} fill={color} stroke="none" />
+                }}
+                activeDot={{ r: 5, strokeWidth: 0 }}
+                legendType="circle"
+              />
+              {/* Dashed projected segment — lastCompleted → projected only */}
+              {hasProjected && (
+                <Line
+                  type="monotone"
+                  dataKey={`${member}_proj`}
+                  stroke={color}
+                  strokeWidth={1.5}
+                  strokeOpacity={0.45}
+                  strokeDasharray="5 4"
+                  dot={(props: any) => {
+                    const { cx, cy, payload } = props
+                    if (payload.label !== projectedLabel) return <g key={`dot-proj-${member}-${cx}`} />
+                    return (
+                      <circle
+                        key={`dot-proj-${member}-${cx}`}
+                        cx={cx} cy={cy} r={4}
+                        fill="white"
+                        stroke={color}
+                        strokeWidth={2}
+                        strokeOpacity={0.5}
+                      />
+                    )
+                  }}
+                  legendType="none"
+                  activeDot={false}
+                  isAnimationActive={false}
+                />
+              )}
+            </React.Fragment>
           )
         })}
-
-        {/* Custom bezier projected segments — drawn on top of solid lines.
-            Uses C1 continuity so each dashed segment flows smoothly from
-            where its solid line ends, with no kink at the junction. */}
-        {hasProjected && (
-          <Customized
-            component={({ xAxisMap, yAxisMap }: any) => (
-              <ProjectedSegmentsRenderer
-                xAxisMap={xAxisMap}
-                yAxisMap={yAxisMap}
-                members={members}
-                chartData={chartData}
-                lastCompletedLabel={lastCompletedLabel}
-                projectedLabel={projectedLabel}
-              />
-            )}
-          />
-        )}
       </LineChart>
     </ResponsiveContainer>
   )
