@@ -246,14 +246,13 @@ export default async function HomePage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
-                <th className="px-4 py-3 text-left w-12">#</th>
-                <th className="px-4 py-3 text-left">
+                <th className="px-4 py-3 text-left w-16">Position</th>
+                <th className="px-4 py-3">
                   <div className="flex justify-between items-center">
                     <span>Player</span>
-                    <span className="md:hidden normal-case tracking-normal text-[10px] text-slate-400">Cumulative Earnings</span>
+                    <span className="normal-case tracking-normal text-[10px] text-slate-400">Cumulative Earnings</span>
                   </div>
                 </th>
-                <th className="hidden md:table-cell px-5 py-3 text-right">Cumulative Earnings</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
@@ -269,7 +268,7 @@ export default async function HomePage() {
                     <td className="px-4 py-3">
                       <div className="flex justify-between items-baseline gap-2">
                         <span className="font-medium text-slate-900">{member.name}</span>
-                        <span className="md:hidden font-mono text-slate-900 font-semibold shrink-0">
+                        <span className="font-mono text-slate-900 font-semibold shrink-0">
                           {formatDollars(member.total_earnings)}
                         </span>
                       </div>
@@ -278,9 +277,6 @@ export default async function HomePage() {
                           <div className="h-full rounded-full bg-emerald-400" style={{ width: `${pct}%` }} />
                         </div>
                       )}
-                    </td>
-                    <td className="hidden md:table-cell px-5 py-3 text-right font-mono text-slate-900 font-semibold">
-                      {formatDollars(member.total_earnings)}
                     </td>
                   </tr>
                 )
