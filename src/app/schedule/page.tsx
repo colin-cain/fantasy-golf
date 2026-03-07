@@ -13,6 +13,7 @@ type Tournament = {
   type: string
   start_date: string
   status: string
+  purse: number | null
   draft_order: DraftSlot[]
 }
 
@@ -32,7 +33,7 @@ async function getSchedule(): Promise<Tournament[]> {
   const { data, error } = await supabase
     .from('tournaments')
     .select(`
-      id, name, type, start_date, status,
+      id, name, type, start_date, status, purse,
       draft_order(
         pick_position,
         league_members(name)
@@ -86,6 +87,13 @@ export default async function SchedulePage() {
                     {TYPE_LABELS[t.type]}
                   </span>
                 </div>
+
+                {/* Purse */}
+                {t.purse != null && t.purse > 0 && (
+                  <p className={`text-xs mt-2 ${done ? 'text-slate-300' : 'text-slate-400'}`}>
+                    ${t.purse.toLocaleString()} purse
+                  </p>
+                )}
 
                 {/* Draft order */}
                 {sortedDraft.length > 0 && (

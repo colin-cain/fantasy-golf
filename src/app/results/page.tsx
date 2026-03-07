@@ -185,7 +185,7 @@ export default async function HistoryPage() {
                             <span className="block text-xs text-slate-400 font-normal sm:hidden">{pick.golfer_name}</span>
                           </td>
                           <td className="hidden sm:table-cell px-5 py-3 text-slate-600">{pick.golfer_name}</td>
-                          <td className={`px-3 sm:px-5 py-3 text-right font-mono font-semibold ${pick.earnings > 0 ? 'text-emerald-700' : 'text-slate-300'}`}>
+                          <td className={`px-3 sm:px-5 py-3 text-right font-mono font-semibold ${pick.earnings > 0 ? 'text-slate-900' : 'text-slate-300'}`}>
                             {pick.earnings > 0 ? `$${pick.earnings.toLocaleString()}` : '—'}
                           </td>
                         </tr>
