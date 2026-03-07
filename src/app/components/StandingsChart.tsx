@@ -160,7 +160,8 @@ export default function StandingsChart({
                   }}
                   legendType="none"
                   activeDot={false}
-                  isAnimationActive={false}
+                  animationBegin={1500}
+                  animationDuration={400}
                 />
               )}
             </React.Fragment>
