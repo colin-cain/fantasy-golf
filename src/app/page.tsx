@@ -303,7 +303,7 @@ export default async function HomePage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
-                    <th className="px-4 py-3 text-left w-12">#</th>
+                    <th className="px-4 py-3 text-left">Position</th>
                     <th className="px-4 py-3 text-left">
                       <div className="flex justify-between items-center">
                         <span>Player</span>
@@ -312,7 +312,6 @@ export default async function HomePage() {
                     </th>
                     <th className="hidden md:table-cell px-5 py-3 text-right">This Week</th>
                     <th className="hidden md:table-cell px-5 py-3 text-right">Cumulative Earnings</th>
-                    <th className="px-4 py-3 text-right">vs. Current</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100">
@@ -323,8 +322,13 @@ export default async function HomePage() {
                     return (
                       <tr key={member.name} className="hover:bg-stone-50 transition-colors">
                         <td className="px-4 py-3">
-                          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${RANK_BADGE_MUTED[index] ?? 'bg-stone-100 text-slate-300'}`}>
-                            {projRank}
+                          <div className="flex items-center gap-1.5">
+                            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${RANK_BADGE_MUTED[index] ?? 'bg-stone-100 text-slate-300'}`}>
+                              {projRank}
+                            </div>
+                            {delta > 0 && <span className="text-xs font-semibold text-emerald-500">↑{delta}</span>}
+                            {delta < 0 && <span className="text-xs font-semibold text-orange-400">↓{Math.abs(delta)}</span>}
+                            {delta === 0 && <span className="text-xs text-slate-300">–</span>}
                           </div>
                         </td>
                         <td className="px-4 py-3">
@@ -344,11 +348,6 @@ export default async function HomePage() {
                         </td>
                         <td className="hidden md:table-cell px-5 py-3 text-right font-mono text-slate-700 font-semibold">
                           ~{formatDollars(member.combined)}
-                        </td>
-                        <td className="px-4 py-3 text-right text-sm">
-                          {delta > 0 && <span className="font-semibold text-emerald-500">↑{delta}</span>}
-                          {delta < 0 && <span className="font-semibold text-orange-400">↓{Math.abs(delta)}</span>}
-                          {delta === 0 && <span className="text-slate-300">–</span>}
                         </td>
                       </tr>
                     )
