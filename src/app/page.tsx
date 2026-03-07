@@ -268,8 +268,8 @@ export default async function HomePage() {
                   </div>
                 </th>
                 <th className="hidden md:table-cell px-5 py-3 text-right">Season Earnings</th>
-                {live && <th className="hidden md:table-cell px-5 py-3 text-right italic normal-case tracking-normal font-normal border-l border-stone-200">This Week</th>}
-                {live && <th className="hidden md:table-cell px-5 py-3 text-right italic normal-case tracking-normal font-normal">Total</th>}
+                {live && <th className="hidden md:table-cell px-5 py-3 text-right italic normal-case tracking-normal border-l border-stone-200">This Week</th>}
+                {live && <th className="hidden md:table-cell px-5 py-3 text-right italic normal-case tracking-normal">Season Earnings</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
