@@ -251,8 +251,11 @@ export default async function HomePage() {
             </colgroup>
             <thead>
               <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
-                <th className="px-4 py-3 text-left">Position</th>
-                <th className="px-4 py-3 text-left">
+                <th className="px-2 sm:px-4 py-3 text-left tracking-tight sm:tracking-widest">
+                  <span className="sm:hidden">Pos.</span>
+                  <span className="hidden sm:inline">Position</span>
+                </th>
+                <th className="px-2 sm:px-4 py-3 text-left">
                   <div className="flex justify-between items-center">
                     <span>Player</span>
                     <span className="md:hidden normal-case tracking-normal text-[10px]">Cumulative Earnings</span>
@@ -266,12 +269,12 @@ export default async function HomePage() {
                 const pct = Math.round((member.total_earnings / maxValue) * 100)
                 return (
                   <tr key={member.name} className="hover:bg-stone-50 transition-colors">
-                    <td className="px-4 py-3">
+                    <td className="px-2 sm:px-4 py-3">
                       <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${RANK_BADGE[index] ?? 'bg-stone-100 text-slate-400'}`}>
                         {index + 1}
                       </div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-2 sm:px-4 py-3">
                       <div className="flex justify-between items-baseline gap-2">
                         <span className="font-medium text-slate-900">{member.name}</span>
                         <span className="md:hidden font-mono text-slate-900 font-semibold shrink-0">
@@ -309,20 +312,24 @@ export default async function HomePage() {
                 <colgroup>
                   <col className="w-[14%]" />
                   <col />
-                  <col className="hidden md:table-column w-[20%]" />
-                  <col className="hidden md:table-column w-[26%]" />
+                  <col className="w-[20%]" />
+                  <col className="w-[26%]" />
                 </colgroup>
                 <thead>
                   <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
-                    <th className="px-4 py-3 text-left">Position</th>
-                    <th className="px-4 py-3 text-left">
-                      <div className="flex justify-between items-center">
-                        <span>Player</span>
-                        <span className="md:hidden normal-case tracking-normal text-[10px]">Cumulative Earnings</span>
-                      </div>
+                    <th className="px-2 sm:px-4 py-3 text-left tracking-tight sm:tracking-widest">
+                      <span className="sm:hidden">Pos.</span>
+                      <span className="hidden sm:inline">Position</span>
                     </th>
-                    <th className="hidden md:table-cell px-5 py-3 text-right">This Week</th>
-                    <th className="hidden md:table-cell px-5 py-3 text-right">Cumulative Earnings</th>
+                    <th className="px-2 sm:px-4 py-3 text-left">Player</th>
+                    <th className="px-2 sm:px-5 py-3 text-right tracking-tight sm:tracking-widest">
+                      <span className="sm:hidden">Wk.</span>
+                      <span className="hidden sm:inline">This Week</span>
+                    </th>
+                    <th className="px-2 sm:px-5 py-3 text-right tracking-tight sm:tracking-widest">
+                      <span className="sm:hidden">Total</span>
+                      <span className="hidden sm:inline">Cumulative Earnings</span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100">
@@ -332,8 +339,8 @@ export default async function HomePage() {
                     const delta = actualRank - projRank  // positive = moving up
                     return (
                       <tr key={member.name} className="hover:bg-stone-50 transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-1.5">
+                        <td className="px-2 sm:px-4 py-3">
+                          <div className="flex items-center gap-1">
                             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${RANK_BADGE_MUTED[index] ?? 'bg-stone-100 text-slate-300'}`}>
                               {projRank}
                             </div>
@@ -342,22 +349,13 @@ export default async function HomePage() {
                             {delta === 0 && <span className="text-xs text-slate-300">–</span>}
                           </div>
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="flex justify-between items-baseline gap-2">
-                            <span className="font-medium text-slate-900">{member.name}</span>
-                            <span className="md:hidden font-mono text-slate-600 font-semibold shrink-0">
-                              ~{formatDollars(member.combined)}
-                            </span>
-                          </div>
-                          {/* Mobile: this week sub-row */}
-                          <div className="md:hidden mt-1 text-[11px] text-slate-400 italic font-mono">
-                            {member.projected > 0 ? `+${formatDollars(member.projected)} this week` : ''}
-                          </div>
+                        <td className="px-2 sm:px-4 py-3">
+                          <span className="font-medium text-slate-900">{member.name}</span>
                         </td>
-                        <td className="hidden md:table-cell px-5 py-3 text-right font-mono text-slate-400 italic">
+                        <td className="px-2 sm:px-5 py-3 text-right font-mono text-slate-400 italic text-xs sm:text-sm">
                           {member.projected > 0 ? `~${formatDollars(member.projected)}` : '—'}
                         </td>
-                        <td className="hidden md:table-cell px-5 py-3 text-right font-mono text-slate-700 font-semibold">
+                        <td className="px-2 sm:px-5 py-3 text-right font-mono text-slate-700 font-semibold text-xs sm:text-sm">
                           ~{formatDollars(member.combined)}
                         </td>
                       </tr>
