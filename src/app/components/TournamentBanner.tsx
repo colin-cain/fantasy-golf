@@ -73,30 +73,41 @@ export default function TournamentBanner({ name, type, startDate, teeTime, inPro
             animation: fgl-ticker 32s linear infinite;
           }
         `}</style>
+        {/* Mobile-only info strip: tournament name + badge above the ticker */}
+        <div className="sm:hidden flex items-center gap-2 px-3 py-1.5 border-b border-stone-100">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+          <span className="text-emerald-700 text-[10px] font-semibold uppercase tracking-widest whitespace-nowrap">Live</span>
+          <span className="text-zinc-700 text-xs font-medium truncate">{name}</span>
+          {TYPE_LABELS[type] && (
+            <span className={`flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-medium leading-none ${TYPE_STYLES[type] ?? ''}`}>
+              {TYPE_LABELS[type]}
+            </span>
+          )}
+          {timeAgo && (
+            <span className="ml-auto flex-shrink-0 text-[10px] text-zinc-400">{timeAgo}</span>
+          )}
+        </div>
+
         <div className="flex items-stretch h-10">
 
-          {/* Fixed left: LIVE label — compact on mobile, full on sm+ */}
-          <div className="flex-shrink-0 flex items-center gap-2 px-3 sm:px-4 w-20 sm:w-[411px] overflow-hidden border-r border-stone-100">
+          {/* Fixed left: full info panel — desktop only */}
+          <div className="hidden sm:flex flex-shrink-0 items-center gap-2 px-4 w-[411px] overflow-hidden border-r border-stone-100">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
-            <span className="text-emerald-700 text-[10px] font-semibold uppercase tracking-widest whitespace-nowrap flex-shrink-0">
-              <span className="sm:hidden">Live</span>
-              <span className="hidden sm:inline">In Progress</span>
-            </span>
-            {/* Name, badge, and timestamp only visible on sm+ */}
-            <span className="hidden sm:block ml-2 text-zinc-700 text-xs font-medium whitespace-nowrap">{name}</span>
+            <span className="text-emerald-700 text-[10px] font-semibold uppercase tracking-widest whitespace-nowrap flex-shrink-0">In Progress</span>
+            <span className="ml-2 text-zinc-700 text-xs font-medium whitespace-nowrap">{name}</span>
             {TYPE_LABELS[type] && (
-              <span className={`hidden sm:inline-flex ml-2 text-[10px] px-1.5 py-0.5 rounded-full font-medium leading-none ${TYPE_STYLES[type] ?? ''}`}>
+              <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded-full font-medium leading-none ${TYPE_STYLES[type] ?? ''}`}>
                 {TYPE_LABELS[type]}
               </span>
             )}
             {timeAgo && (
-              <span className="hidden sm:block ml-auto text-[10px] text-zinc-400 whitespace-nowrap flex-shrink-0">
+              <span className="ml-auto text-[10px] text-zinc-400 whitespace-nowrap flex-shrink-0">
                 {timeAgo}
               </span>
             )}
           </div>
 
-          {/* Scrolling ticker track */}
+          {/* Scrolling ticker — full width on mobile, flex-1 on desktop */}
           <div className="flex-1 overflow-hidden flex items-center">
             <div className="fgl-ticker-track flex items-stretch whitespace-nowrap">
               {[...picks, ...picks].map(({ member, golfer, position, total, roundScore, thru, teeTime }, i) => {
