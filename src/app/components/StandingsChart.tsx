@@ -96,7 +96,7 @@ export default function StandingsChart({
 
   // Dashed line starts right as the solid lines finish, then builds slowly.
   const dashedBegin = 1450   // slightly before 1500ms to avoid scheduling gaps
-  const dashedDuration = 2500 // slow, deliberate build
+  const dashedDuration = 2000 // slow, deliberate build
 
   return (
     <ResponsiveContainer width="100%" height={280}>
