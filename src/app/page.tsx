@@ -232,12 +232,6 @@ export default async function HomePage() {
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Season Standings</h1>
           <p className="text-slate-500 text-sm mt-1">
             2026 · Based on PGA Tour prize earnings
-            {live && (
-              <span className="ml-2 inline-flex items-center gap-1 text-emerald-600">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" />
-                Projected from live results
-              </span>
-            )}
           </p>
         </div>
 

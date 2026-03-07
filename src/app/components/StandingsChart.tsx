@@ -99,6 +99,7 @@ export default function StandingsChart({
   const dashedDuration = 1750 // slow, deliberate build
 
   return (
+    <div>
     <ResponsiveContainer width="100%" height={280}>
       <LineChart data={chartData} margin={{ top: 8, right: 16, left: 8, bottom: 0 }}>
         <XAxis
@@ -174,5 +175,23 @@ export default function StandingsChart({
         })}
       </LineChart>
     </ResponsiveContainer>
+
+    {hasProjected && (
+      <div className="flex items-center gap-5 mt-2 pl-14 text-[11px] text-slate-400" style={{ fontFamily: 'var(--font-geist-mono)' }}>
+        <div className="flex items-center gap-1.5">
+          <svg width="20" height="8" className="overflow-visible flex-shrink-0">
+            <line x1="0" y1="4" x2="20" y2="4" stroke="#94a3b8" strokeWidth="2" />
+          </svg>
+          <span>Actual</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <svg width="20" height="8" className="overflow-visible flex-shrink-0">
+            <line x1="0" y1="4" x2="20" y2="4" stroke="#94a3b8" strokeWidth="1.5" strokeOpacity="0.5" strokeDasharray="5 4" />
+          </svg>
+          <span>Projected (live)</span>
+        </div>
+      </div>
+    )}
+    </div>
   )
 }
