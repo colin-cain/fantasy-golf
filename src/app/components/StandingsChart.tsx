@@ -9,7 +9,6 @@ import {
   YAxis,
   Tooltip,
   Legend,
-  ReferenceLine,
 } from 'recharts'
 
 export type ChartPoint = Record<string, string | number>
@@ -78,23 +77,22 @@ export default function StandingsChart({
   const hasProjected = !!(projectedLabel && lastCompletedLabel)
 
   // Pre-process into a single dataset to avoid x-axis duplication.
-  // The dashed projected segment spans exactly two points: lastCompletedLabel → projectedLabel.
-  // At the projected point: move values to ${member}_proj keys, clear main keys so
-  //   the solid line stops there cleanly.
-  // At lastCompletedLabel: copy values to ${member}_proj so the dashed line starts there.
+  // The dashed _proj line carries values at ALL historical points (same as the solid line)
+  // so that monotone interpolation has full curve context at the lastCompleted → projected
+  // segment. The solid line renders on top and hides the historical overlap, leaving only
+  // the projected segment visually dashed.
   const chartData = hasProjected
     ? data.map(p => {
         if (p.label === projectedLabel) {
+          // Projected point: only _proj values so the solid line stops cleanly here
           const out: ChartPoint = { label: p.label, tournament: p.tournament }
           for (const m of members) out[`${m}_proj`] = p[m]
           return out
         }
-        if (p.label === lastCompletedLabel) {
-          const out: ChartPoint = { ...p }
-          for (const m of members) out[`${m}_proj`] = p[m]
-          return out
-        }
-        return p
+        // All historical points: copy values into _proj for curve context
+        const out: ChartPoint = { ...p }
+        for (const m of members) out[`${m}_proj`] = p[m]
+        return out
       })
     : data
 
@@ -121,49 +119,20 @@ export default function StandingsChart({
           wrapperStyle={{ fontSize: 12, fontFamily: 'var(--font-geist-mono)', paddingTop: 12 }}
         />
 
-        {/* Dashed vertical line at the projected data point */}
-        {projectedLabel && (
-          <ReferenceLine
-            x={projectedLabel}
-            stroke="#cbd5e1"
-            strokeWidth={1.5}
-            strokeDasharray="5 4"
-            label={{
-              value: 'projected',
-              position: 'insideTopRight',
-              fontSize: 9,
-              fill: '#94a3b8',
-              fontFamily: 'var(--font-geist-mono)',
-              dy: 4,
-            }}
-          />
-        )}
-
         {members.map((member) => {
           const color = MEMBER_COLORS[member] ?? '#94a3b8'
           return (
             <React.Fragment key={member}>
-              {/* Solid confirmed line — stops at projected point (value is undefined there) */}
-              <Line
-                type="monotone"
-                dataKey={member}
-                stroke={color}
-                strokeWidth={2}
-                dot={(props: any) => {
-                  const { cx, cy } = props
-                  return <circle key={`dot-${member}-${cx}`} cx={cx} cy={cy} r={3} fill={color} stroke="none" />
-                }}
-                activeDot={{ r: 5, strokeWidth: 0 }}
-                legendType="circle"
-              />
-              {/* Muted dashed projected segment — only the two boundary points have values */}
+              {/* Dashed projected line — rendered FIRST (below solid) so the solid line
+                  covers the historical overlap, leaving only the projected segment dashed.
+                  Carries full-history _proj values so monotone curves naturally. */}
               {hasProjected && (
                 <Line
                   type="monotone"
                   dataKey={`${member}_proj`}
                   stroke={color}
                   strokeWidth={1.5}
-                  strokeOpacity={0.35}
+                  strokeOpacity={0.4}
                   strokeDasharray="5 4"
                   dot={(props: any) => {
                     const { cx, cy, payload } = props
@@ -184,6 +153,19 @@ export default function StandingsChart({
                   isAnimationActive={false}
                 />
               )}
+              {/* Solid confirmed line — rendered on top, covers historical dashed overlap */}
+              <Line
+                type="monotone"
+                dataKey={member}
+                stroke={color}
+                strokeWidth={2}
+                dot={(props: any) => {
+                  const { cx, cy } = props
+                  return <circle key={`dot-${member}-${cx}`} cx={cx} cy={cy} r={3} fill={color} stroke="none" />
+                }}
+                activeDot={{ r: 5, strokeWidth: 0 }}
+                legendType="circle"
+              />
             </React.Fragment>
           )
         })}
