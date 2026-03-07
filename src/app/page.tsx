@@ -241,46 +241,24 @@ export default async function HomePage() {
           </p>
         </div>
 
-        {/* Standings table */}
+        {/* Actual standings table */}
         <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              {/* Desktop super-header: group projected columns */}
-              {live && (
-                <tr className="hidden md:table-row bg-stone-50 text-xs uppercase tracking-widest text-slate-400 border-b border-stone-100">
-                  <th colSpan={3} />
-                  <th colSpan={2} className="px-5 pt-3 pb-0 text-center border-l border-stone-200 italic normal-case tracking-normal font-normal text-[11px]">
-                    Projected
-                  </th>
-                </tr>
-              )}
               <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
                 <th className="px-4 py-3 text-left w-12">#</th>
                 <th className="px-4 py-3 text-left">
                   <div className="flex justify-between items-center">
                     <span>Player</span>
-                    {live && (
-                      <span className="md:hidden normal-case tracking-normal text-[10px] text-slate-400">
-                        Cumulative Earnings
-                      </span>
-                    )}
-                    {!live && <span>Cumulative Earnings</span>}
+                    <span className="md:hidden normal-case tracking-normal text-[10px] text-slate-400">Cumulative Earnings</span>
                   </div>
                 </th>
                 <th className="hidden md:table-cell px-5 py-3 text-right">Cumulative Earnings</th>
-                {live && <th className="hidden md:table-cell px-5 py-3 text-right italic normal-case tracking-normal border-l border-stone-200">This Week</th>}
-                {live && <th className="hidden md:table-cell px-5 py-3 text-right italic normal-case tracking-normal">Cumulative Earnings</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
               {sorted.map((member, index) => {
                 const pct = Math.round((member.total_earnings / maxValue) * 100)
-
-                // Movement arrow: current realized rank vs where they'd land on combined
-                const realRank = index + 1
-                const projRank = projectedRankMap.get(member.name) ?? realRank
-                const delta = realRank - projRank  // positive = would move up
-
                 return (
                   <tr key={member.name} className="hover:bg-stone-50 transition-colors">
                     <td className="px-4 py-3">
@@ -289,81 +267,100 @@ export default async function HomePage() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      {/* Line 1: name + earnings (mobile only) */}
                       <div className="flex justify-between items-baseline gap-2">
                         <span className="font-medium text-slate-900">{member.name}</span>
                         <span className="md:hidden font-mono text-slate-900 font-semibold shrink-0">
                           {formatDollars(member.total_earnings)}
                         </span>
                       </div>
-                      {/* Mobile: full projected sub-row */}
-                      {live && (
-                        <div className="md:hidden mt-1 flex items-center gap-1.5 text-[11px]">
-                          <span className="text-[9px] uppercase tracking-widest text-slate-300 font-medium shrink-0">Proj</span>
-                          <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold shrink-0 ${RANK_BADGE_MUTED[projRank - 1] ?? 'bg-stone-100 text-slate-300'}`}>
-                            {projRank}
-                          </div>
-                          {delta > 0 && <span className="font-semibold text-emerald-500">↑{delta}</span>}
-                          {delta < 0 && <span className="font-semibold text-orange-400">↓{Math.abs(delta)}</span>}
-                          {delta === 0 && <span className="text-slate-300">–</span>}
-                          {member.projected > 0 && (
-                            <>
-                              <span className="font-mono text-slate-400 italic shrink-0">~{formatDollars(member.projected)} wk</span>
-                              <span className="text-slate-200">·</span>
-                            </>
-                          )}
-                          <span className="font-mono text-slate-400 italic shrink-0">~{formatDollars(member.combined)}</span>
-                        </div>
-                      )}
-                      {/* Desktop: projected rank + movement indicator */}
-                      {live && (
-                        <div className="hidden md:flex mt-1 items-center gap-1.5 text-[11px]">
-                          <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold shrink-0 ${RANK_BADGE_MUTED[projRank - 1] ?? 'bg-stone-100 text-slate-300'}`}>
-                            {projRank}
-                          </div>
-                          {delta > 0 && <span className="font-semibold text-emerald-500">↑{delta}</span>}
-                          {delta < 0 && <span className="font-semibold text-orange-400">↓{Math.abs(delta)}</span>}
-                          {delta === 0 && <span className="text-slate-300">–</span>}
-                        </div>
-                      )}
                       {!live && (
                         <div className="mt-1.5 h-1 rounded-full bg-stone-100 overflow-hidden">
                           <div className="h-full rounded-full bg-emerald-400" style={{ width: `${pct}%` }} />
                         </div>
                       )}
                     </td>
-                    {/* Desktop: season earnings */}
                     <td className="hidden md:table-cell px-5 py-3 text-right font-mono text-slate-900 font-semibold">
                       {formatDollars(member.total_earnings)}
                     </td>
-                    {/* Desktop: this week projected */}
-                    {live && (
-                      <td className="hidden md:table-cell px-5 py-3 text-right font-mono text-slate-400 italic border-l border-stone-200">
-                        {member.projected > 0 ? `~${formatDollars(member.projected)}` : '—'}
-                      </td>
-                    )}
-                    {/* Desktop: projected total */}
-                    {live && (
-                      <td className="hidden md:table-cell px-5 py-3 text-right font-mono font-semibold text-slate-700">
-                        ~{formatDollars(member.combined)}
-                      </td>
-                    )}
                   </tr>
                 )
               })}
             </tbody>
           </table>
-          {live && live.purse > 0 && (
-            <p className="text-[11px] text-slate-400 text-right px-5 py-2.5 border-t border-stone-100">
-              Projected · {live.tournamentName} · ${live.purse.toLocaleString()} purse
-            </p>
-          )}
-          {live && live.purse === 0 && (
-            <p className="text-[11px] text-slate-400 text-right px-5 py-2.5 border-t border-stone-100">
-              Projections unavailable — purse not yet cached
-            </p>
-          )}
         </div>
+
+        {/* Projected standings card — only shown during a live tournament */}
+        {live && (() => {
+          const projectedSorted = [...enriched].sort((a, b) => b.combined - a.combined)
+          const actualRankMap = new Map(sorted.map((m, i) => [m.name, i + 1]))
+          return (
+            <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden mt-5">
+              <div className="px-5 py-3 border-b border-stone-100 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+                <span className="text-xs uppercase tracking-widest text-slate-400 font-medium">Projected Standings</span>
+                <span className="ml-auto text-[11px] text-slate-400">{live.tournamentName}{live.purse > 0 ? ` · $${(live.purse / 1_000_000).toFixed(0)}M purse` : ''}</span>
+              </div>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
+                    <th className="px-4 py-3 text-left w-12">#</th>
+                    <th className="px-4 py-3 text-left">
+                      <div className="flex justify-between items-center">
+                        <span>Player</span>
+                        <span className="md:hidden normal-case tracking-normal text-[10px] text-slate-400">Cumulative</span>
+                      </div>
+                    </th>
+                    <th className="hidden md:table-cell px-5 py-3 text-right">This Week</th>
+                    <th className="hidden md:table-cell px-5 py-3 text-right">Cumulative Earnings</th>
+                    <th className="px-4 py-3 text-right">vs. Current</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100">
+                  {projectedSorted.map((member, index) => {
+                    const projRank = index + 1
+                    const actualRank = actualRankMap.get(member.name) ?? projRank
+                    const delta = actualRank - projRank  // positive = moving up
+                    return (
+                      <tr key={member.name} className="hover:bg-stone-50 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${RANK_BADGE_MUTED[index] ?? 'bg-stone-100 text-slate-300'}`}>
+                            {projRank}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex justify-between items-baseline gap-2">
+                            <span className="font-medium text-slate-900">{member.name}</span>
+                            <span className="md:hidden font-mono text-slate-600 font-semibold shrink-0">
+                              ~{formatDollars(member.combined)}
+                            </span>
+                          </div>
+                          {/* Mobile: this week sub-row */}
+                          <div className="md:hidden mt-1 text-[11px] text-slate-400 italic font-mono">
+                            {member.projected > 0 ? `+${formatDollars(member.projected)} this week` : ''}
+                          </div>
+                        </td>
+                        <td className="hidden md:table-cell px-5 py-3 text-right font-mono text-slate-400 italic">
+                          {member.projected > 0 ? `~${formatDollars(member.projected)}` : '—'}
+                        </td>
+                        <td className="hidden md:table-cell px-5 py-3 text-right font-mono text-slate-700 font-semibold">
+                          ~{formatDollars(member.combined)}
+                        </td>
+                        <td className="px-4 py-3 text-right text-sm">
+                          {delta > 0 && <span className="font-semibold text-emerald-500">↑{delta}</span>}
+                          {delta < 0 && <span className="font-semibold text-orange-400">↓{Math.abs(delta)}</span>}
+                          {delta === 0 && <span className="text-slate-300">–</span>}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+              <p className="text-[11px] text-slate-400 px-5 py-2.5 border-t border-stone-100">
+                Projected based on current leaderboard position · updates automatically
+              </p>
+            </div>
+          )
+        })()}
 
         {/* Cumulative earnings chart */}
         {enrichedChartData.length > 0 && (
