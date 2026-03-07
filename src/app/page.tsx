@@ -264,10 +264,10 @@ export default async function HomePage() {
                 <th className="px-4 py-3">
                   <div className="flex justify-between items-center">
                     <span>Player</span>
-                    {/* Mobile: label both data rows; desktop: label the earnings column */}
+                    {/* Mobile: label the right-aligned earnings figure */}
                     {live && (
-                      <span className="md:hidden normal-case tracking-normal text-[10px] italic text-slate-300">
-                        Season · Proj
+                      <span className="md:hidden normal-case tracking-normal text-[10px] text-slate-400">
+                        Season
                       </span>
                     )}
                     {live && <span className="hidden md:inline">Cumulative Earnings</span>}
