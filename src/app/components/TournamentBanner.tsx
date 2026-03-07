@@ -83,9 +83,6 @@ export default function TournamentBanner({ name, type, startDate, teeTime, inPro
               {TYPE_LABELS[type]}
             </span>
           )}
-          {timeAgo && (
-            <span className="ml-auto flex-shrink-0 text-[10px] text-zinc-400">{timeAgo}</span>
-          )}
         </div>
 
         <div className="flex items-stretch h-10">
@@ -98,11 +95,6 @@ export default function TournamentBanner({ name, type, startDate, teeTime, inPro
             {TYPE_LABELS[type] && (
               <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded-full font-medium leading-none ${TYPE_STYLES[type] ?? ''}`}>
                 {TYPE_LABELS[type]}
-              </span>
-            )}
-            {timeAgo && (
-              <span className="ml-auto text-[10px] text-zinc-400 whitespace-nowrap flex-shrink-0">
-                {timeAgo}
               </span>
             )}
           </div>
