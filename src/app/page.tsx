@@ -247,8 +247,8 @@ export default async function HomePage() {
             <colgroup>
               <col className="w-12" />
               <col />
-              {live && <col className="w-32" />}
-              {live && <col className="w-44" />}
+              {live && <col className="w-1/4" />}
+              {live && <col className="w-1/4" />}
             </colgroup>
             <thead>
               {live && (
