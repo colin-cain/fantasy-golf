@@ -162,10 +162,10 @@ export default async function HistoryPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-stone-50 border-b border-stone-100 text-xs uppercase tracking-widest text-slate-400">
-                      <th className="px-3 sm:px-5 py-2.5 text-left w-12">#</th>
-                      <th className="px-3 sm:px-5 py-2.5 text-left">Member</th>
-                      <th className="hidden sm:table-cell px-5 py-2.5 text-left">Golfer</th>
-                      <th className="px-3 sm:px-5 py-2.5 text-right">Earnings</th>
+                      <th className="px-3 sm:px-5 py-2.5 text-left w-12 tracking-tight">#</th>
+                      <th className="px-3 sm:px-5 py-2.5 text-left tracking-tight">Member</th>
+                      <th className="hidden sm:table-cell px-5 py-2.5 text-left tracking-tight">Golfer</th>
+                      <th className="px-3 sm:px-5 py-2.5 text-right tracking-tight">Earnings</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-stone-100">
