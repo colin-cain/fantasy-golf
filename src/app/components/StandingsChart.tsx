@@ -77,22 +77,26 @@ export default function StandingsChart({
   const hasProjected = !!(projectedLabel && lastCompletedLabel)
 
   // Pre-process into a single dataset to avoid x-axis duplication.
-  // The dashed _proj line carries values at ALL historical points (same as the solid line)
-  // so that monotone interpolation has full curve context at the lastCompleted → projected
-  // segment. The solid line renders on top and hides the historical overlap, leaving only
-  // the projected segment visually dashed.
+  // The dashed _proj line only gets values at exactly two points:
+  //   lastCompletedLabel (start) and projectedLabel (end).
+  // This guarantees the dashed segment appears ONLY between those two points —
+  // no historical overlap, no bleed-through from SVG layering imprecision.
   const chartData = hasProjected
     ? data.map(p => {
         if (p.label === projectedLabel) {
-          // Projected point: only _proj values so the solid line stops cleanly here
+          // Projected endpoint: only _proj values so the solid line stops cleanly here
           const out: ChartPoint = { label: p.label, tournament: p.tournament }
           for (const m of members) out[`${m}_proj`] = p[m]
           return out
         }
-        // All historical points: copy values into _proj for curve context
-        const out: ChartPoint = { ...p }
-        for (const m of members) out[`${m}_proj`] = p[m]
-        return out
+        if (p.label === lastCompletedLabel) {
+          // Last completed point: anchor for the dashed segment start
+          const out: ChartPoint = { ...p }
+          for (const m of members) out[`${m}_proj`] = p[m]
+          return out
+        }
+        // All other historical points: no _proj values
+        return p
       })
     : data
 
@@ -123,16 +127,27 @@ export default function StandingsChart({
           const color = MEMBER_COLORS[member] ?? '#94a3b8'
           return (
             <React.Fragment key={member}>
-              {/* Dashed projected line — rendered FIRST (below solid) so the solid line
-                  covers the historical overlap, leaving only the projected segment dashed.
-                  Carries full-history _proj values so monotone curves naturally. */}
+              {/* Solid confirmed line — all completed tournaments */}
+              <Line
+                type="monotone"
+                dataKey={member}
+                stroke={color}
+                strokeWidth={2}
+                dot={(props: any) => {
+                  const { cx, cy } = props
+                  return <circle key={`dot-${member}-${cx}`} cx={cx} cy={cy} r={3} fill={color} stroke="none" />
+                }}
+                activeDot={{ r: 5, strokeWidth: 0 }}
+                legendType="circle"
+              />
+              {/* Dashed projected segment — only lastCompleted → projected (2 points) */}
               {hasProjected && (
                 <Line
                   type="monotone"
                   dataKey={`${member}_proj`}
                   stroke={color}
                   strokeWidth={1.5}
-                  strokeOpacity={0.4}
+                  strokeOpacity={0.45}
                   strokeDasharray="5 4"
                   dot={(props: any) => {
                     const { cx, cy, payload } = props
@@ -153,19 +168,6 @@ export default function StandingsChart({
                   isAnimationActive={false}
                 />
               )}
-              {/* Solid confirmed line — rendered on top, covers historical dashed overlap */}
-              <Line
-                type="monotone"
-                dataKey={member}
-                stroke={color}
-                strokeWidth={2}
-                dot={(props: any) => {
-                  const { cx, cy } = props
-                  return <circle key={`dot-${member}-${cx}`} cx={cx} cy={cy} r={3} fill={color} stroke="none" />
-                }}
-                activeDot={{ r: 5, strokeWidth: 0 }}
-                legendType="circle"
-              />
             </React.Fragment>
           )
         })}
