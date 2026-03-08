@@ -100,7 +100,7 @@ async function getLiveProjections(): Promise<{
 } | null> {
   const { data: tournament } = await supabase
     .from('tournaments')
-    .select('id, name, purse')
+    .select('id, name, purse, round_status')
     .eq('status', 'in_progress')
     .limit(1)
     .single()
@@ -137,7 +137,7 @@ async function getLiveProjections(): Promise<{
     projections[memberName] = getProjectedEarnings(position, purse)
   }
 
-  return { tournamentName: tournament.name, purse, projections }
+  return { tournamentName: tournament.name, purse, projections, roundStatus: (tournament.round_status as string | null) ?? null }
 }
 
 const RANK_BADGE = [
@@ -289,9 +289,17 @@ export default async function HomePage() {
           return (
             <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden mt-5">
               <div className="px-5 py-3 border-b border-stone-100 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+                {live.roundStatus === 'Suspended'
+                  ? <span className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
+                  : <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+                }
                 <span className="text-xs uppercase tracking-widest text-slate-400 font-medium">Projected Standings</span>
-                <span className="ml-auto text-[11px] text-slate-400">{live.tournamentName}{live.purse > 0 ? ` · $${(live.purse / 1_000_000).toFixed(0)}M purse` : ''}</span>
+                <div className="ml-auto flex items-center gap-2 text-[11px] text-slate-400">
+                  {live.roundStatus === 'Suspended' && (
+                    <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-600 border border-amber-200 font-medium uppercase tracking-wide text-[10px]">Suspended</span>
+                  )}
+                  <span>{live.tournamentName}{live.purse > 0 ? ` · $${(live.purse / 1_000_000).toFixed(0)}M purse` : ''}</span>
+                </div>
               </div>
               <table className="w-full text-sm table-fixed">
                 <colgroup>

@@ -191,6 +191,14 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // Always persist the current round status (e.g. "In Progress", "Suspended", "Official")
+  // so the frontend can show appropriate indicators without hitting the API directly.
+  const roundStatus: string | null = typeof lb.roundStatus === 'string' ? lb.roundStatus : null
+  await supabase
+    .from('tournaments')
+    .update({ round_status: roundStatus })
+    .eq('id', tournament.id)
+
   // Upsert every golfer row into leaderboard_cache
   const rows = lb.leaderboardRows.map((row: {
     firstName: string

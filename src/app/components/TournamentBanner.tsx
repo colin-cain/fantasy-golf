@@ -21,6 +21,7 @@ type Props = {
   inProgress: boolean
   picks?: TickerPick[]
   lastUpdated?: string | null
+  roundStatus?: string | null
 }
 
 const TYPE_STYLES: Record<string, string> = {
@@ -57,8 +58,9 @@ function useTimeAgo(isoTimestamp: string | null | undefined): string | null {
   return label
 }
 
-export default function TournamentBanner({ name, type, startDate, teeTime, inProgress, picks = [], lastUpdated }: Props) {
+export default function TournamentBanner({ name, type, startDate, teeTime, inProgress, picks = [], lastUpdated, roundStatus }: Props) {
   const timeAgo = useTimeAgo(lastUpdated)
+  const isSuspended = roundStatus === 'Suspended'
 
   // ── Live ticker mode ──────────────────────────────────────────────────────
   if (inProgress && picks.length > 0) {
@@ -75,8 +77,8 @@ export default function TournamentBanner({ name, type, startDate, teeTime, inPro
         `}</style>
         {/* Mobile-only info strip: tournament name + badge above the ticker */}
         <div className="sm:hidden flex items-center gap-2 px-3 py-1.5 border-b border-stone-100">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
-          <span className="text-emerald-700 text-[10px] font-semibold uppercase tracking-widest whitespace-nowrap">In Progress</span>
+          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isSuspended ? 'bg-amber-400' : 'bg-emerald-500 animate-pulse'}`} />
+          <span className={`text-[10px] font-semibold uppercase tracking-widest whitespace-nowrap ${isSuspended ? 'text-amber-600' : 'text-emerald-700'}`}>{isSuspended ? 'Suspended' : 'In Progress'}</span>
           <span className="text-zinc-700 text-xs font-medium truncate">{name}</span>
           {TYPE_LABELS[type] && (
             <span className={`flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-medium leading-none ${TYPE_STYLES[type] ?? ''}`}>
@@ -89,8 +91,8 @@ export default function TournamentBanner({ name, type, startDate, teeTime, inPro
 
           {/* Fixed left: full info panel — desktop only */}
           <div className="hidden sm:flex flex-shrink-0 items-center gap-2 px-4 w-[411px] overflow-hidden border-r border-stone-100">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
-            <span className="text-emerald-700 text-[10px] font-semibold uppercase tracking-widest whitespace-nowrap flex-shrink-0">In Progress</span>
+            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isSuspended ? 'bg-amber-400' : 'bg-emerald-500 animate-pulse'}`} />
+            <span className={`text-[10px] font-semibold uppercase tracking-widest whitespace-nowrap flex-shrink-0 ${isSuspended ? 'text-amber-600' : 'text-emerald-700'}`}>{isSuspended ? 'Suspended' : 'In Progress'}</span>
             <span className="ml-2 text-zinc-700 text-xs font-medium whitespace-nowrap">{name}</span>
             {TYPE_LABELS[type] && (
               <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded-full font-medium leading-none ${TYPE_STYLES[type] ?? ''}`}>
