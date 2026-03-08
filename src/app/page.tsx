@@ -97,6 +97,7 @@ async function getLiveProjections(): Promise<{
   tournamentName: string
   purse: number
   projections: Record<string, number>  // member name → projected earnings
+  roundStatus: string | null
 } | null> {
   const { data: tournament } = await supabase
     .from('tournaments')
