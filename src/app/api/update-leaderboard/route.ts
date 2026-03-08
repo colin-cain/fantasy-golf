@@ -68,24 +68,33 @@ export async function GET(req: NextRequest) {
   // Only blocks when ALL cached tee times are still in the future — lifts the moment
   // any pick starts. Falls back to tournament.tee_time + 30 min when cache is empty
   // (i.e. the very first call for this tournament before any data exists).
+  //
+  // BYPASS: if any pick already has a non-empty thru value, play has started (or the
+  // round is suspended mid-round). Skip this guard entirely — the API may be returning
+  // tomorrow's resumption tee times for suspended rounds, which would otherwise block
+  // all subsequent cron updates until the round resumes.
   {
-    const teeTimes = cached
-      .map((r) => { const n = parseInt(String(r.tee_time ?? '')); return isNaN(n) ? null : n })
-      .filter((n): n is number => n !== null)
+    const anyStarted = cached.some((r) => r.thru && r.thru !== '0')
 
-    if (teeTimes.length > 0) {
-      if (teeTimes.every((n) => n > now.getTime())) {
-        // Every pick is still to tee off — wait until 30 min after the first one starts
-        const firstCallAt = new Date(Math.min(...teeTimes) + 30 * 60 * 1000)
-        if (now < firstCallAt) {
-          return NextResponse.json({ message: 'Too early — no picks have teed off yet', firstCallAt })
+    if (!anyStarted) {
+      const teeTimes = cached
+        .map((r) => { const n = parseInt(String(r.tee_time ?? '')); return isNaN(n) ? null : n })
+        .filter((n): n is number => n !== null)
+
+      if (teeTimes.length > 0) {
+        if (teeTimes.every((n) => n > now.getTime())) {
+          // Every pick is still to tee off — wait until 30 min after the first one starts
+          const firstCallAt = new Date(Math.min(...teeTimes) + 30 * 60 * 1000)
+          if (now < firstCallAt) {
+            return NextResponse.json({ message: 'Too early — no picks have teed off yet', firstCallAt })
+          }
         }
-      }
-    } else if (tournament.tee_time) {
-      // No cached tee times yet (first call ever) — fall back to scheduled tournament tee time
-      const firstCallAt = new Date(new Date(tournament.tee_time).getTime() + 30 * 60 * 1000)
-      if (now < firstCallAt) {
-        return NextResponse.json({ message: 'Too early — first call is 30 min after tee time', firstCallAt })
+      } else if (tournament.tee_time) {
+        // No cached tee times yet (first call ever) — fall back to scheduled tournament tee time
+        const firstCallAt = new Date(new Date(tournament.tee_time).getTime() + 30 * 60 * 1000)
+        if (now < firstCallAt) {
+          return NextResponse.json({ message: 'Too early — first call is 30 min after tee time', firstCallAt })
+        }
       }
     }
   }
