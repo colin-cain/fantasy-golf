@@ -167,12 +167,7 @@ function formatDollars(n: number) {
 }
 
 function Dollars({ n, prefix = '' }: { n: number; prefix?: string }) {
-  return (
-    <>
-      <span className="sm:hidden">{prefix}{formatDollars(n)}</span>
-      <span className="hidden sm:inline">{prefix}${n.toLocaleString()}</span>
-    </>
-  )
+  return <>{prefix}${n.toLocaleString()}</>
 }
 
 export default async function HomePage() {
