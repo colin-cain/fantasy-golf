@@ -18,6 +18,7 @@ type Props = {
   type: string
   startDate: string
   teeTime: string | null
+  picksDeadline: string | null
   inProgress: boolean
   picks?: TickerPick[]
   lastUpdated?: string | null
@@ -58,7 +59,7 @@ function useTimeAgo(isoTimestamp: string | null | undefined): string | null {
   return label
 }
 
-export default function TournamentBanner({ name, type, startDate, teeTime, inProgress, picks = [], lastUpdated, roundStatus }: Props) {
+export default function TournamentBanner({ name, type, startDate, teeTime, picksDeadline, inProgress, picks = [], lastUpdated, roundStatus }: Props) {
   const timeAgo = useTimeAgo(lastUpdated)
   const isSuspended = roundStatus === 'Suspended'
 
@@ -141,6 +142,7 @@ export default function TournamentBanner({ name, type, startDate, teeTime, inPro
       type={type}
       startDate={startDate}
       teeTime={teeTime}
+      picksDeadline={picksDeadline}
       inProgress={inProgress}
     />
   )

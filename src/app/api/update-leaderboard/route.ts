@@ -117,7 +117,9 @@ export async function GET(req: NextRequest) {
         : 0
       const expectedRound = Math.max(1, daysSinceTeeTime + 1)
 
-      if (cachedRound >= expectedRound) {
+      // On round 4 (the final round), always allow one more pass-through so the
+      // API can return "Official" status and we can mark the tournament complete.
+      if (cachedRound >= expectedRound && cachedRound < 4) {
         return NextResponse.json({ message: 'All picked players have finished their round for today' })
       }
     }
@@ -202,10 +204,16 @@ export async function GET(req: NextRequest) {
 
   // Always persist the current round status (e.g. "In Progress", "Suspended", "Official")
   // so the frontend can show appropriate indicators without hitting the API directly.
+  // When the final round goes "Official", also mark the tournament as complete so the
+  // frontend stops showing it as in-progress and the cron stops polling it.
   const roundStatus: string | null = typeof lb.roundStatus === 'string' ? lb.roundStatus : null
+  const tournamentUpdate: Record<string, unknown> = { round_status: roundStatus }
+  if (roundStatus === 'Official') {
+    tournamentUpdate.status = 'completed'
+  }
   await supabase
     .from('tournaments')
-    .update({ round_status: roundStatus })
+    .update(tournamentUpdate)
     .eq('id', tournament.id)
 
   // Upsert every golfer row into leaderboard_cache

@@ -36,14 +36,14 @@ export default async function RootLayout({
   // Prefer an in-progress tournament; fall back to next upcoming
   const { data: live } = await supabase
     .from('tournaments')
-    .select('id, name, type, start_date, tee_time, round_status')
+    .select('id, name, type, start_date, tee_time, picks_deadline, round_status')
     .eq('status', 'in_progress')
     .limit(1)
     .single()
 
   const { data: next } = !live ? await supabase
     .from('tournaments')
-    .select('id, name, type, start_date, tee_time, round_status')
+    .select('id, name, type, start_date, tee_time, picks_deadline, round_status')
     .eq('status', 'upcoming')
     .order('start_date', { ascending: true })
     .limit(1)
@@ -115,6 +115,7 @@ export default async function RootLayout({
             type={banner.type}
             startDate={banner.start_date}
             teeTime={banner.tee_time ?? null}
+            picksDeadline={(banner as any).picks_deadline ?? null}
             inProgress={!!live}
             picks={tickerPicks}
             lastUpdated={lastUpdated}

@@ -5,9 +5,10 @@ import { useEffect, useState } from 'react'
 type Props = {
   name: string
   type: string
-  startDate: string      // "YYYY-MM-DD" — fallback if no tee_time
-  teeTime: string | null // ISO 8601 UTC timestamp, e.g. "2026-03-05T12:40:00Z"
-  inProgress?: boolean   // true when status = in_progress in the DB
+  startDate: string         // "YYYY-MM-DD" — fallback if no picks_deadline
+  teeTime: string | null    // actual first tee time — used by cron logic, not the countdown
+  picksDeadline: string | null // ISO 8601 UTC — what the countdown counts down to
+  inProgress?: boolean      // true when status = in_progress in the DB
 }
 
 const TYPE_STYLES: Record<string, string> = {
@@ -22,9 +23,9 @@ const TYPE_LABELS: Record<string, string> = {
   regular:   'Regular',
 }
 
-function resolveTarget(startDate: string, teeTime: string | null): string {
-  if (teeTime) return teeTime
-  return startDate + 'T12:00:00Z'
+function resolveTarget(startDate: string, picksDeadline: string | null): string {
+  if (picksDeadline) return picksDeadline
+  return startDate + 'T01:00:00Z'
 }
 
 function getTimeLeft(target: string) {
@@ -42,8 +43,8 @@ function pad(n: number) {
   return String(n).padStart(2, '0')
 }
 
-export default function CountdownBanner({ name, type, startDate, teeTime, inProgress = false }: Props) {
-  const target = resolveTarget(startDate, teeTime)
+export default function CountdownBanner({ name, type, startDate, picksDeadline, inProgress = false }: Props) {
+  const target = resolveTarget(startDate, picksDeadline)
   const [timeLeft, setTimeLeft] = useState<ReturnType<typeof getTimeLeft>>(null)
   const [initialized, setInitialized] = useState(false)
 
