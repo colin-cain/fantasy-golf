@@ -319,8 +319,8 @@ export default async function HomePage() {
               </div>
               <table className="w-full text-sm table-fixed">
                 <colgroup>
-                  <col className="w-[17%]" />
-                  <col className="w-[26%]" />
+                  <col className="w-[20%]" />
+                  <col className="w-[23%]" />
                   <col className="w-[24%]" />
                   <col className="w-[33%]" />
                 </colgroup>
@@ -355,7 +355,7 @@ export default async function HomePage() {
                         <td className="px-2 sm:px-5 py-3 text-right font-mono text-slate-400 italic text-xs sm:text-sm">
                           {member.projected > 0 ? <Dollars n={member.projected} /> : '—'}
                         </td>
-                        <td className="px-2 sm:px-5 py-3 text-right font-mono text-slate-700 font-semibold italic text-xs sm:text-sm">
+                        <td className="px-2 sm:px-5 py-3 text-right font-mono text-slate-400 font-semibold italic text-xs sm:text-sm">
                           <Dollars n={member.combined} />
                         </td>
                       </tr>
