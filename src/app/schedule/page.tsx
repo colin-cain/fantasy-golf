@@ -89,11 +89,9 @@ export default async function SchedulePage() {
                 </div>
 
                 {/* Purse */}
-                {t.purse != null && t.purse > 0 && (
-                  <p className={`text-xs mt-2 ${done ? 'text-slate-300' : 'text-slate-400'}`}>
-                    ${t.purse.toLocaleString()} purse
-                  </p>
-                )}
+                <p className={`text-xs mt-2 ${done ? 'text-slate-300' : 'text-slate-400'}`}>
+                  {t.purse != null && t.purse > 0 ? `$${t.purse.toLocaleString()} purse` : 'Purse TBD'}
+                </p>
 
                 {/* Draft order */}
                 {sortedDraft.length > 0 && (
