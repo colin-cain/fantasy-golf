@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
-import { getFinalEarnings } from '@/lib/payoutTable'
 
 const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY!
 const CRON_SECRET  = process.env.CRON_SECRET!
@@ -254,32 +253,56 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: upsertErr.message }, { status: 500 })
   }
 
-  // When the tournament is officially complete, finalize earnings on all picks.
-  // Build a tie-count map from the full leaderboard so split prizes are averaged correctly.
+  // When the tournament is officially complete, finalize earnings on all picks
+  // using the dedicated earnings API endpoint (official PGA Tour amounts).
+  // We join on playerId between the leaderboard and earnings endpoints to handle
+  // name format inconsistencies (e.g. Korean golfers with compound given names).
   let earningsFinalized = 0
-  if (roundStatus === 'Official' && effectivePurse > 0) {
-    const posCounts: Record<string, number> = {}
-    const golferPos: Record<string, string> = {}
-    for (const row of lb.leaderboardRows as { firstName: string; lastName: string; position: string }[]) {
-      const name = `${row.firstName} ${row.lastName}`
-      const pos  = row.position
-      golferPos[name] = pos
-      if (pos) posCounts[pos] = (posCounts[pos] ?? 0) + 1
-    }
+  if (roundStatus === 'Official' && tournId) {
+    try {
+      const earningsRes = await fetch(
+        `https://live-golf-data.p.rapidapi.com/earnings?tournId=${tournId}&year=2026`,
+        { headers: { 'x-rapidapi-key': RAPIDAPI_KEY, 'x-rapidapi-host': 'live-golf-data.p.rapidapi.com' } }
+      )
+      const earningsData = await earningsRes.json()
 
-    const { data: tPicks } = await supabase
-      .from('picks')
-      .select('id, golfer_name')
-      .eq('tournament_id', tournament.id)
+      if (earningsData.leaderboard) {
+        // playerId → canonical full name (from the leaderboard we already fetched)
+        const pidToName: Record<string, string> = {}
+        for (const row of lb.leaderboardRows as { playerId: string; firstName: string; lastName: string }[]) {
+          pidToName[row.playerId] = `${row.firstName} ${row.lastName}`
+        }
 
-    if (tPicks?.length) {
-      for (const pick of tPicks) {
-        const pos      = golferPos[pick.golfer_name] ?? null
-        const count    = pos ? (posCounts[pos] ?? 1) : 1
-        const earnings = getFinalEarnings(pos, count, effectivePurse)
-        await supabaseAdmin.from('picks').update({ earnings }).eq('id', pick.id)
+        // normalized name → earnings
+        const nameToEarnings: Record<string, number> = {}
+        for (const row of earningsData.leaderboard as { playerId: string; earnings: unknown }[]) {
+          const name = pidToName[row.playerId]
+          if (name) {
+            const e = row.earnings
+            const amt = (e && typeof e === 'object' && '$numberInt' in (e as object))
+              ? parseInt((e as { $numberInt: string }).$numberInt, 10)
+              : parseInt(String(e ?? '0'), 10)
+            const normalized = name.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim()
+            nameToEarnings[normalized] = amt
+          }
+        }
+
+        const { data: tPicks } = await supabase
+          .from('picks')
+          .select('id, golfer_name')
+          .eq('tournament_id', tournament.id)
+
+        if (tPicks?.length) {
+          for (const pick of tPicks) {
+            const key      = pick.golfer_name.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim()
+            const earnings = nameToEarnings[key] ?? 0
+            await supabaseAdmin.from('picks').update({ earnings }).eq('id', pick.id)
+          }
+          earningsFinalized = tPicks.length
+        }
       }
-      earningsFinalized = tPicks.length
+    } catch {
+      // Non-fatal: finalize-earnings cron will pick this up on its next run
     }
   }
 

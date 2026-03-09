@@ -1,25 +1,66 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
-import { getFinalEarnings } from '@/lib/payoutTable'
 
-const RAPIDAPI_KEY  = process.env.RAPIDAPI_KEY!
-const CRON_SECRET   = process.env.CRON_SECRET!
+const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY!
+const CRON_SECRET  = process.env.CRON_SECRET!
 
-type LeaderboardRow = { firstName: string; lastName: string; position: string }
+const RAPIDAPI_HEADERS = {
+  'x-rapidapi-key':  RAPIDAPI_KEY,
+  'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
+}
 
 /**
- * Builds position→count and golfer→position maps from a leaderboard row array.
+ * Strips diacritics so names like "Højgaard" match picks stored as "Hojgaard".
  */
-function buildPositionMaps(rows: LeaderboardRow[]) {
-  const posCounts: Record<string, number> = {}
-  const golferPos: Record<string, string> = {}
-  for (const row of rows) {
-    const name = `${row.firstName} ${row.lastName}`
-    const pos  = row.position
-    golferPos[name] = pos
-    if (pos) posCounts[pos] = (posCounts[pos] ?? 0) + 1
+function normalizeName(name: string): string {
+  return name.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim()
+}
+
+/**
+ * Parses a MongoDB { $numberInt: "..." } value or a plain number/string.
+ */
+function parseMongoInt(val: unknown): number {
+  if (val && typeof val === 'object' && '$numberInt' in (val as object)) {
+    return parseInt((val as { $numberInt: string }).$numberInt, 10)
   }
-  return { posCounts, golferPos }
+  return parseInt(String(val ?? '0'), 10)
+}
+
+/**
+ * Fetches official per-player earnings from the RapidAPI earnings endpoint,
+ * cross-referenced with the leaderboard endpoint for reliable playerId→name mapping.
+ *
+ * The leaderboard and earnings endpoints use different name formats for some
+ * players (e.g. Korean golfers), so we join on playerId rather than name.
+ *
+ * Returns a map of normalized golfer name → earnings in dollars.
+ */
+async function fetchOfficialEarnings(tournId: string): Promise<Record<string, number> | null> {
+  const [lbRes, earningsRes] = await Promise.all([
+    fetch(`https://live-golf-data.p.rapidapi.com/leaderboard?orgId=1&tournId=${tournId}&year=2026`, { headers: RAPIDAPI_HEADERS }),
+    fetch(`https://live-golf-data.p.rapidapi.com/earnings?tournId=${tournId}&year=2026`,            { headers: RAPIDAPI_HEADERS }),
+  ])
+
+  const [lb, earningsData] = await Promise.all([lbRes.json(), earningsRes.json()])
+
+  if (!lb.leaderboardRows || !earningsData.leaderboard) return null
+
+  // Build playerId → canonical full name from leaderboard (correct full names)
+  const pidToName: Record<string, string> = {}
+  for (const row of lb.leaderboardRows as { playerId: string; firstName: string; lastName: string }[]) {
+    pidToName[row.playerId] = `${row.firstName} ${row.lastName}`
+  }
+
+  // Build normalized name → earnings via playerId cross-reference
+  const nameToEarnings: Record<string, number> = {}
+  for (const row of earningsData.leaderboard as { playerId: string; earnings: unknown }[]) {
+    const name = pidToName[row.playerId]
+    if (name) {
+      nameToEarnings[normalizeName(name)] = parseMongoInt(row.earnings)
+    }
+  }
+
+  return nameToEarnings
 }
 
 export async function GET(req: NextRequest) {
@@ -29,10 +70,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Find completed tournaments that still have picks with earnings = 0
   const { data: tournaments } = await supabase
     .from('tournaments')
-    .select('id, name, purse, api_tourn_id, type')
+    .select('id, name, api_tourn_id')
     .eq('status', 'completed')
 
   if (!tournaments?.length) {
@@ -42,7 +82,6 @@ export async function GET(req: NextRequest) {
   const results = []
 
   for (const tournament of tournaments) {
-    // Check if any picks still have earnings = 0
     const { data: unpaidPicks } = await supabase
       .from('picks')
       .select('id, golfer_name')
@@ -54,49 +93,21 @@ export async function GET(req: NextRequest) {
       continue
     }
 
-    if (!tournament.purse || tournament.purse === 0) {
-      results.push({ tournament: tournament.name, skipped: 'no purse on record' })
+    if (!tournament.api_tourn_id) {
+      results.push({ tournament: tournament.name, skipped: 'no api_tourn_id' })
       continue
     }
 
-    // Try leaderboard_cache first (valid if the tournament just completed)
-    const { data: cachedRows } = await supabase
-      .from('leaderboard_cache')
-      .select('golfer_name, position')
-      .eq('tournament_id', tournament.id)
+    const nameToEarnings = await fetchOfficialEarnings(tournament.api_tourn_id)
 
-    let golferPos: Record<string, string> = {}
-    let posCounts: Record<string, number> = {}
-
-    if (cachedRows?.length) {
-      for (const r of cachedRows) {
-        golferPos[r.golfer_name] = r.position
-        if (r.position) posCounts[r.position] = (posCounts[r.position] ?? 0) + 1
-      }
-    } else if (tournament.api_tourn_id) {
-      // Cache is stale — re-fetch from API
-      const res = await fetch(
-        `https://live-golf-data.p.rapidapi.com/leaderboard?orgId=1&tournId=${tournament.api_tourn_id}&year=2026`,
-        { headers: { 'x-rapidapi-key': RAPIDAPI_KEY, 'x-rapidapi-host': 'live-golf-data.p.rapidapi.com' } }
-      )
-      const lb = await res.json()
-      if (!lb.leaderboardRows) {
-        results.push({ tournament: tournament.name, skipped: 'API returned no leaderboard data' })
-        continue
-      }
-      const maps = buildPositionMaps(lb.leaderboardRows as LeaderboardRow[])
-      golferPos  = maps.golferPos
-      posCounts  = maps.posCounts
-    } else {
-      results.push({ tournament: tournament.name, skipped: 'no cache and no api_tourn_id' })
+    if (!nameToEarnings) {
+      results.push({ tournament: tournament.name, skipped: 'API returned no data' })
       continue
     }
 
     let updated = 0
     for (const pick of unpaidPicks) {
-      const pos      = golferPos[pick.golfer_name] ?? null
-      const count    = pos ? (posCounts[pos] ?? 1) : 1
-      const earnings = getFinalEarnings(pos, count, tournament.purse, tournament.type)
+      const earnings = nameToEarnings[normalizeName(pick.golfer_name)] ?? 0
       await supabaseAdmin.from('picks').update({ earnings }).eq('id', pick.id)
       updated++
     }
