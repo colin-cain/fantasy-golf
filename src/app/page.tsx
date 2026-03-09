@@ -171,11 +171,22 @@ function Dollars({ n, prefix = '' }: { n: number; prefix?: string }) {
 }
 
 export default async function HomePage() {
-  const [standings, { chartData, weeklyData, members }, live] = await Promise.all([
+  const [standings, { chartData, weeklyData, members }, liveReal] = await Promise.all([
     getStandings(),
     getChartData(),
     getLiveProjections(),
   ])
+
+  // TEMP: mock live data for projected standings preview — remove before merging
+  const mockProjections = Object.fromEntries(
+    standings.map((s, i) => [s.name, [1_440_000, 864_000, 540_000, 360_000, 270_000, 198_000][i] ?? 0])
+  )
+  const live = liveReal ?? {
+    tournamentName: 'The Players Championship',
+    purse: 25_000_000,
+    projections: mockProjections,
+    roundStatus: 'In Progress',
+  }
 
   // Enrich each standing with live projected + combined values
   const enriched = standings.map(s => ({
