@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabase, supabaseAdmin } from '@/lib/supabase'
 import { getFinalEarnings } from '@/lib/payoutTable'
 
 const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY!
@@ -277,7 +277,7 @@ export async function GET(req: NextRequest) {
         const pos      = golferPos[pick.golfer_name] ?? null
         const count    = pos ? (posCounts[pos] ?? 1) : 1
         const earnings = getFinalEarnings(pos, count, effectivePurse)
-        await supabase.from('picks').update({ earnings }).eq('id', pick.id)
+        await supabaseAdmin.from('picks').update({ earnings }).eq('id', pick.id)
       }
       earningsFinalized = tPicks.length
     }
