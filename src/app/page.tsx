@@ -166,6 +166,15 @@ function formatDollars(n: number) {
   return `$${n.toLocaleString()}`
 }
 
+function Dollars({ n, prefix = '' }: { n: number; prefix?: string }) {
+  return (
+    <>
+      <span className="sm:hidden">{prefix}{formatDollars(n)}</span>
+      <span className="hidden sm:inline">{prefix}${n.toLocaleString()}</span>
+    </>
+  )
+}
+
 export default async function HomePage() {
   const [standings, { chartData, weeklyData, members }, live] = await Promise.all([
     getStandings(),
@@ -274,7 +283,7 @@ export default async function HomePage() {
                       )}
                     </td>
                     <td className="px-2 sm:px-5 py-3 text-right font-mono text-slate-900 font-semibold text-xs sm:text-sm">
-                      {formatDollars(member.total_earnings)}
+                      <Dollars n={member.total_earnings} />
                     </td>
                   </tr>
                 )
@@ -338,10 +347,10 @@ export default async function HomePage() {
                           <span className="font-medium text-slate-900">{member.name}</span>
                         </td>
                         <td className="px-2 sm:px-5 py-3 text-right font-mono text-slate-400 italic text-xs sm:text-sm">
-                          {member.projected > 0 ? `~${formatDollars(member.projected)}` : '—'}
+                          {member.projected > 0 ? <Dollars n={member.projected} prefix="~" /> : '—'}
                         </td>
                         <td className="px-2 sm:px-5 py-3 text-right font-mono text-slate-700 font-semibold text-xs sm:text-sm">
-                          ~{formatDollars(member.combined)}
+                          <Dollars n={member.combined} prefix="~" />
                         </td>
                       </tr>
                     )
