@@ -101,7 +101,7 @@ async function getLiveProjections(): Promise<{
 } | null> {
   const { data: tournament } = await supabase
     .from('tournaments')
-    .select('id, name, purse, round_status')
+    .select('id, name, purse, round_status, type')
     .eq('status', 'in_progress')
     .limit(1)
     .single()
@@ -135,7 +135,7 @@ async function getLiveProjections(): Promise<{
   for (const pick of picks as unknown as LivePick[]) {
     const memberName = pick.league_members.name
     const position = positionMap[pick.golfer_name] ?? null
-    projections[memberName] = getProjectedEarnings(position, purse)
+    projections[memberName] = getProjectedEarnings(position, purse, tournament.type as string | null)
   }
 
   return { tournamentName: tournament.name, purse, projections, roundStatus: (tournament.round_status as string | null) ?? null }

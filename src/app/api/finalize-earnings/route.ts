@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
   // Find completed tournaments that still have picks with earnings = 0
   const { data: tournaments } = await supabase
     .from('tournaments')
-    .select('id, name, purse, api_tourn_id')
+    .select('id, name, purse, api_tourn_id, type')
     .eq('status', 'completed')
 
   if (!tournaments?.length) {
@@ -96,7 +96,7 @@ export async function GET(req: NextRequest) {
     for (const pick of unpaidPicks) {
       const pos      = golferPos[pick.golfer_name] ?? null
       const count    = pos ? (posCounts[pos] ?? 1) : 1
-      const earnings = getFinalEarnings(pos, count, tournament.purse)
+      const earnings = getFinalEarnings(pos, count, tournament.purse, tournament.type)
       await supabaseAdmin.from('picks').update({ earnings }).eq('id', pick.id)
       updated++
     }
