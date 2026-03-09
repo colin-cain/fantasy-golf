@@ -319,10 +319,10 @@ export default async function HomePage() {
               </div>
               <table className="w-full text-sm table-fixed">
                 <colgroup>
-                  <col className="w-[28%]" />
-                  <col className="w-[26%]" />
-                  <col className="w-[20%]" />
-                  <col className="w-[26%]" />
+                  <col className="w-[17%]" />
+                  <col className="w-[23%]" />
+                  <col className="w-[27%]" />
+                  <col className="w-[33%]" />
                 </colgroup>
                 <thead>
                   <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
@@ -352,7 +352,7 @@ export default async function HomePage() {
                         <td className="px-2 sm:px-4 py-3">
                           <span className="font-medium text-slate-900">{member.name}</span>
                         </td>
-                        <td className="px-2 sm:px-5 py-3 text-right font-mono text-slate-400 italic text-xs sm:text-sm">
+                        <td className="px-2 sm:px-5 py-3 text-right font-mono text-slate-400 text-xs sm:text-sm">
                           {member.projected > 0 ? <Dollars n={member.projected} /> : '—'}
                         </td>
                         <td className="px-2 sm:px-5 py-3 text-right font-mono text-slate-700 font-semibold text-xs sm:text-sm">
