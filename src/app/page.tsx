@@ -259,9 +259,9 @@ export default async function HomePage() {
           </div>
           <table className="w-full text-sm table-fixed">
             <colgroup>
-              <col className="w-[28%]" />
+              <col className="w-[20%]" />
               <col />
-              <col className="w-[26%]" />
+              <col className="w-[33%]" />
             </colgroup>
             <thead>
               <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
