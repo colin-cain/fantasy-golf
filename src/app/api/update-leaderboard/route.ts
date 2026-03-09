@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { getFinalEarnings } from '@/lib/payoutTable'
 
 const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY!
 const CRON_SECRET  = process.env.CRON_SECRET!
@@ -191,16 +192,17 @@ export async function GET(req: NextRequest) {
 
   // Cache the tournament purse if we don't have it yet.
   // The API typically returns purse as a MongoDB $numberInt or plain number.
+  const rawPurseVal = parseMongo(lb.purse ?? lb.totalPurse ?? lb.prizeMoney)
+  const freshPurse = typeof rawPurseVal === 'number' && rawPurseVal > 0 ? rawPurseVal : 0
   if (!tournament.purse || tournament.purse === 0) {
-    const rawPurse = parseMongo(lb.purse ?? lb.totalPurse ?? lb.prizeMoney)
-    const purse = typeof rawPurse === 'number' && rawPurse > 0 ? rawPurse : 0
-    if (purse > 0) {
+    if (freshPurse > 0) {
       await supabase
         .from('tournaments')
-        .update({ purse })
+        .update({ purse: freshPurse })
         .eq('id', tournament.id)
     }
   }
+  const effectivePurse = (tournament.purse && tournament.purse > 0) ? tournament.purse : freshPurse
 
   // Always persist the current round status (e.g. "In Progress", "Suspended", "Official")
   // so the frontend can show appropriate indicators without hitting the API directly.
@@ -252,6 +254,35 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: upsertErr.message }, { status: 500 })
   }
 
+  // When the tournament is officially complete, finalize earnings on all picks.
+  // Build a tie-count map from the full leaderboard so split prizes are averaged correctly.
+  let earningsFinalized = 0
+  if (roundStatus === 'Official' && effectivePurse > 0) {
+    const posCounts: Record<string, number> = {}
+    const golferPos: Record<string, string> = {}
+    for (const row of lb.leaderboardRows as { firstName: string; lastName: string; position: string }[]) {
+      const name = `${row.firstName} ${row.lastName}`
+      const pos  = row.position
+      golferPos[name] = pos
+      if (pos) posCounts[pos] = (posCounts[pos] ?? 0) + 1
+    }
+
+    const { data: tPicks } = await supabase
+      .from('picks')
+      .select('id, golfer_name')
+      .eq('tournament_id', tournament.id)
+
+    if (tPicks?.length) {
+      for (const pick of tPicks) {
+        const pos      = golferPos[pick.golfer_name] ?? null
+        const count    = pos ? (posCounts[pos] ?? 1) : 1
+        const earnings = getFinalEarnings(pos, count, effectivePurse)
+        await supabase.from('picks').update({ earnings }).eq('id', pick.id)
+      }
+      earningsFinalized = tPicks.length
+    }
+  }
+
   return NextResponse.json({
     success: true,
     tournament: tournament.name,
@@ -260,5 +291,6 @@ export async function GET(req: NextRequest) {
     golfersUpdated: rows.length,
     round: parseMongo(lb.roundId),
     roundStatus: lb.roundStatus,
+    earningsFinalized,
   })
 }

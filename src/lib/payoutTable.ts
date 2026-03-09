@@ -97,3 +97,28 @@ export function getProjectedEarnings(positionStr: string | null | undefined, pur
   if (pos === null || pos < 1 || pos > PAYOUTS.length) return 0
   return Math.round(purse * PAYOUTS[pos - 1])
 }
+
+/**
+ * Calculates final (official) earnings for a golfer, correctly averaging
+ * prize money across tied positions.
+ *
+ * @param positionStr - Position string, e.g. "T4", "5", "MC"
+ * @param tiedCount   - Number of players sharing this position (1 if sole holder)
+ * @param purse       - Tournament total purse in dollars
+ */
+export function getFinalEarnings(
+  positionStr: string | null | undefined,
+  tiedCount: number,
+  purse: number
+): number {
+  if (!purse || purse <= 0) return 0
+  const pos = parsePosition(positionStr)
+  if (pos === null || pos < 1) return 0
+  const count = Math.max(1, tiedCount)
+  let sum = 0
+  for (let i = 0; i < count; i++) {
+    const idx = pos - 1 + i
+    if (idx < PAYOUTS.length) sum += PAYOUTS[idx]
+  }
+  return Math.round((sum / count) * purse)
+}

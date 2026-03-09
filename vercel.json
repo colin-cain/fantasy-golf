@@ -1,1 +1,8 @@
-{}
+{
+  "crons": [
+    {
+      "path": "/api/finalize-earnings",
+      "schedule": "0 10 * * *"
+    }
+  ]
+}
