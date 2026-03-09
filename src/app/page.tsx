@@ -320,16 +320,16 @@ export default async function HomePage() {
               <table className="w-full text-sm table-fixed">
                 <colgroup>
                   <col className="w-[28%]" />
-                  <col />
                   <col className="w-[26%]" />
-                  <col className="w-[18%]" />
+                  <col className="w-[20%]" />
+                  <col className="w-[26%]" />
                 </colgroup>
                 <thead>
                   <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
                     <th className="px-2 sm:px-4 py-3 text-left tracking-tight">Position</th>
                     <th className="px-2 sm:px-4 py-3 text-left tracking-tight">Player</th>
-                    <th className="px-2 sm:px-5 py-3 text-right leading-tight tracking-tight">Cumulative Earnings</th>
                     <th className="px-2 sm:px-5 py-3 text-right leading-tight tracking-tight">This Week</th>
+                    <th className="px-2 sm:px-5 py-3 text-right leading-tight tracking-tight">Cumulative Earnings</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100">
@@ -352,11 +352,11 @@ export default async function HomePage() {
                         <td className="px-2 sm:px-4 py-3">
                           <span className="font-medium text-slate-900">{member.name}</span>
                         </td>
-                        <td className="px-2 sm:px-5 py-3 text-right font-mono text-slate-700 font-semibold text-xs sm:text-sm">
-                          <Dollars n={member.combined} />
-                        </td>
                         <td className="px-2 sm:px-5 py-3 text-right font-mono text-slate-400 italic text-xs sm:text-sm">
                           {member.projected > 0 ? <Dollars n={member.projected} /> : '—'}
+                        </td>
+                        <td className="px-2 sm:px-5 py-3 text-right font-mono text-slate-700 font-semibold text-xs sm:text-sm">
+                          <Dollars n={member.combined} />
                         </td>
                       </tr>
                     )
