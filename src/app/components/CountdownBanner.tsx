@@ -87,12 +87,18 @@ export default function CountdownBanner({ name, type, startDate, teeTime, inProg
           </div>
           {timeLeft && (
             <div className="flex items-center gap-2.5 font-mono flex-shrink-0">
-              {[
-                { value: timeLeft.days,    unit: 'd' },
-                { value: timeLeft.hours,   unit: 'h' },
-                { value: timeLeft.minutes, unit: 'm' },
-                { value: timeLeft.seconds, unit: 's' },
-              ].map(({ value, unit }) => (
+              {(timeLeft.days >= 1
+                ? [
+                    { value: timeLeft.days,    unit: 'd' },
+                    { value: timeLeft.hours,   unit: 'h' },
+                    { value: timeLeft.minutes, unit: 'm' },
+                  ]
+                : [
+                    { value: timeLeft.hours,   unit: 'h' },
+                    { value: timeLeft.minutes, unit: 'm' },
+                    { value: timeLeft.seconds, unit: 's' },
+                  ]
+              ).map(({ value, unit }) => (
                 <div key={unit} className="flex items-baseline gap-0.5">
                   <span className="text-sm font-bold text-slate-900 tabular-nums">{pad(value)}</span>
                   <span className="text-[11px] text-slate-400">{unit}</span>
