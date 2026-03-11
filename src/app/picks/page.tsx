@@ -39,7 +39,8 @@ async function getData(): Promise<{ members: MemberUsed[]; completedCount: numbe
     supabase
       .from('tournaments')
       .select('id, name')
-      .eq('status', 'in_progress')
+      .in('status', ['in_progress', 'upcoming'])
+      .order('start_date', { ascending: true })
       .limit(1)
       .single(),
   ])
