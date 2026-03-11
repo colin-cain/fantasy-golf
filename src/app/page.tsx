@@ -244,7 +244,7 @@ export default async function HomePage() {
 
         {/* Actual standings table */}
         <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-3 border-b border-stone-100 flex items-center gap-2">
+          <div className="px-2 sm:px-4 py-3 border-b border-stone-100 flex items-center gap-2">
             <span className="text-xs uppercase tracking-widest text-slate-400 font-medium whitespace-nowrap">Current Standings</span>
           </div>
           <table className="w-full text-sm table-fixed">
@@ -294,7 +294,7 @@ export default async function HomePage() {
           const actualRankMap = new Map(sorted.map((m, i) => [m.name, i + 1]))
           return (
             <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden mt-5">
-              <div className="px-5 py-3 border-b border-stone-100 flex items-center gap-2">
+              <div className="px-2 sm:px-4 py-3 border-b border-stone-100 flex items-center gap-2">
                 <span className="text-xs uppercase tracking-widest text-slate-400 font-medium">Projected Standings</span>
                 {live.roundStatus === 'Suspended'
                   ? <span className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
@@ -362,7 +362,7 @@ export default async function HomePage() {
 
         {/* Cumulative earnings chart */}
         {enrichedChartData.length > 0 && (
-          <div className="bg-white rounded-xl border border-stone-200 shadow-sm px-5 pt-5 pb-3 mt-5">
+          <div className="bg-white rounded-xl border border-stone-200 shadow-sm px-2 sm:px-4 pt-5 pb-3 mt-5">
             <p className="text-xs uppercase tracking-widest text-slate-400 mb-4">Cumulative Earnings</p>
             <StandingsChart
               data={enrichedChartData}
@@ -375,7 +375,7 @@ export default async function HomePage() {
 
         {/* Weekly earnings chart */}
         {enrichedWeeklyData.length > 0 && (
-          <div className="bg-white rounded-xl border border-stone-200 shadow-sm px-5 pt-5 pb-3 mt-5">
+          <div className="bg-white rounded-xl border border-stone-200 shadow-sm px-2 sm:px-4 pt-5 pb-3 mt-5">
             <p className="text-xs uppercase tracking-widest text-slate-400 mb-4">Earnings by Tournament</p>
             <StandingsChart
               data={enrichedWeeklyData}
