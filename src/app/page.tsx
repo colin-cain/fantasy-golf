@@ -36,6 +36,7 @@ async function getStandings(): Promise<Standing[]> {
 
   const totals: Record<string, number> = {}
   for (const row of data as any[]) {
+    if (!row.league_members) continue
     const name = row.league_members.name
     totals[name] = (totals[name] || 0) + row.earnings
   }
@@ -67,6 +68,7 @@ async function getChartData(): Promise<{ chartData: ChartPoint[]; weeklyData: Ch
 
   const chartData: ChartPoint[] = tournaments.map((t, i) => {
     for (const pick of t.picks) {
+      if (!pick.league_members) continue
       const name = pick.league_members.name
       cumulative[name] = (cumulative[name] ?? 0) + pick.earnings
     }
@@ -82,7 +84,7 @@ async function getChartData(): Promise<{ chartData: ChartPoint[]; weeklyData: Ch
     label: `T${i + 1}`,
     tournament: t.name,
     ...Object.fromEntries(
-      MEMBERS.map(m => [m, t.picks.find(p => p.league_members.name === m)?.earnings ?? 0])
+      MEMBERS.map(m => [m, t.picks.find(p => p.league_members?.name === m)?.earnings ?? 0])
     ),
   }))
 
@@ -243,7 +245,6 @@ export default async function HomePage() {
         {/* Actual standings table */}
         <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
           <div className="px-5 py-3 border-b border-stone-100 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 flex-shrink-0 invisible" />
             <span className="text-xs uppercase tracking-widest text-slate-400 font-medium whitespace-nowrap">Current Standings</span>
           </div>
           <table className="w-full text-sm table-fixed">
@@ -294,11 +295,11 @@ export default async function HomePage() {
           return (
             <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden mt-5">
               <div className="px-5 py-3 border-b border-stone-100 flex items-center gap-2">
+                <span className="text-xs uppercase tracking-widest text-slate-400 font-medium">Projected Standings</span>
                 {live.roundStatus === 'Suspended'
                   ? <span className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
                   : <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
                 }
-                <span className="text-xs uppercase tracking-widest text-slate-400 font-medium">Projected Standings</span>
                 <div className="ml-auto flex items-center gap-2 text-[11px] text-slate-400">
                   {live.roundStatus === 'Suspended' && (
                     <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-600 border border-amber-200 font-medium uppercase tracking-wide text-[10px]">Suspended</span>
