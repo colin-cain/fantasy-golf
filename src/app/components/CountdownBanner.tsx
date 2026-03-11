@@ -5,9 +5,9 @@ import { useEffect, useState } from 'react'
 type Props = {
   name: string
   type: string
-  startDate: string         // "YYYY-MM-DD" — fallback if no picks_deadline
-  teeTime: string | null    // ISO 8601 UTC — tee-time countdown target
-  picksDeadline: string | null // ISO 8601 UTC — picks-due countdown target
+  startDate: string         // unused by countdown; kept for API compatibility
+  teeTime: string | null    // ISO 8601 UTC — kick-off countdown target
+  picksDeadline: string | null // unused; kept for API compatibility
   inProgress?: boolean      // true when status = in_progress in the DB
 }
 
@@ -37,9 +37,7 @@ function getTimeLeft(target: string | null): TimeLeft | null {
   }
 }
 
-function pad(n: number) {
-  return String(n).padStart(2, '0')
-}
+function pad(n: number) { return String(n).padStart(2, '0') }
 
 // Show d/h/m when more than a day away; h/m/s when under a day
 function CountdownDigits({ t }: { t: TimeLeft }) {
@@ -58,23 +56,17 @@ function CountdownDigits({ t }: { t: TimeLeft }) {
   )
 }
 
-export default function CountdownBanner({ name, type, startDate, teeTime, picksDeadline, inProgress = false }: Props) {
-  const picksTarget = picksDeadline ?? (startDate + 'T01:00:00Z')
-
-  const [picksLeft, setPicksLeft] = useState<TimeLeft | null>(null)
-  const [teeLeft,   setTeeLeft]   = useState<TimeLeft | null>(null)
+export default function CountdownBanner({ name, type, teeTime, inProgress = false }: Props) {
+  const [teeLeft, setTeeLeft] = useState<TimeLeft | null>(null)
   const [initialized, setInitialized] = useState(false)
 
   useEffect(() => {
     setInitialized(true)
-    function tick() {
-      setPicksLeft(getTimeLeft(picksTarget))
-      setTeeLeft(getTimeLeft(teeTime))
-    }
+    function tick() { setTeeLeft(getTimeLeft(teeTime)) }
     tick()
     const id = setInterval(tick, 1_000)
     return () => clearInterval(id)
-  }, [picksTarget, teeTime])
+  }, [teeTime])
 
   if (!initialized) return null
 
@@ -85,7 +77,7 @@ export default function CountdownBanner({ name, type, startDate, teeTime, picksD
 
   return (
     <div className="bg-white border-b border-stone-200">
-      <div className="max-w-4xl mx-auto px-4 py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+      <div className="max-w-4xl mx-auto px-4 py-2.5 flex items-center justify-between">
 
         {/* Left — status label + tournament name + type badge */}
         <div className="flex items-center gap-2 flex-wrap">
@@ -105,24 +97,11 @@ export default function CountdownBanner({ name, type, startDate, teeTime, picksD
           </span>
         </div>
 
-        {/* Right — picks-due + tee-time countdowns */}
-        {(picksLeft || teeLeft) && (
-          <div className="flex items-center gap-3">
-            {picksLeft && (
-              <div className="flex flex-col items-end">
-                <span className="text-[9px] uppercase tracking-widest text-slate-400 font-medium leading-tight">Picks due</span>
-                <CountdownDigits t={picksLeft} />
-              </div>
-            )}
-            {picksLeft && teeLeft && (
-              <div className="w-px h-7 bg-stone-200 flex-shrink-0" />
-            )}
-            {teeLeft && (
-              <div className="flex flex-col items-end">
-                <span className="text-[9px] uppercase tracking-widest text-slate-400 font-medium leading-tight">Kick-off</span>
-                <CountdownDigits t={teeLeft} />
-              </div>
-            )}
+        {/* Right — kick-off countdown */}
+        {teeLeft && (
+          <div className="flex flex-col items-end flex-shrink-0">
+            <span className="text-[9px] uppercase tracking-widest text-slate-400 font-medium leading-tight">Kick-off</span>
+            <CountdownDigits t={teeLeft} />
           </div>
         )}
 
