@@ -6,8 +6,8 @@ type Props = {
   name: string
   type: string
   startDate: string         // "YYYY-MM-DD" — fallback if no picks_deadline
-  teeTime: string | null    // actual first tee time — used by cron logic, not the countdown
-  picksDeadline: string | null // ISO 8601 UTC — what the countdown counts down to
+  teeTime: string | null    // ISO 8601 UTC — tee-time countdown target
+  picksDeadline: string | null // ISO 8601 UTC — picks-due countdown target
   inProgress?: boolean      // true when status = in_progress in the DB
 }
 
@@ -23,12 +23,10 @@ const TYPE_LABELS: Record<string, string> = {
   regular:   'Regular',
 }
 
-function resolveTarget(startDate: string, picksDeadline: string | null): string {
-  if (picksDeadline) return picksDeadline
-  return startDate + 'T01:00:00Z'
-}
+type TimeLeft = { days: number; hours: number; minutes: number; seconds: number }
 
-function getTimeLeft(target: string) {
+function getTimeLeft(target: string | null): TimeLeft | null {
+  if (!target) return null
   const diff = new Date(target).getTime() - Date.now()
   if (diff <= 0) return null
   return {
@@ -43,29 +41,51 @@ function pad(n: number) {
   return String(n).padStart(2, '0')
 }
 
-export default function CountdownBanner({ name, type, startDate, picksDeadline, inProgress = false }: Props) {
-  const target = resolveTarget(startDate, picksDeadline)
-  const [timeLeft, setTimeLeft] = useState<ReturnType<typeof getTimeLeft>>(null)
+// Show d/h/m when more than a day away; h/m/s when under a day
+function CountdownDigits({ t }: { t: TimeLeft }) {
+  const units = t.days > 0
+    ? [{ value: t.days, unit: 'd' }, { value: t.hours, unit: 'h' }, { value: t.minutes, unit: 'm' }]
+    : [{ value: t.hours, unit: 'h' }, { value: t.minutes, unit: 'm' }, { value: t.seconds, unit: 's' }]
+  return (
+    <div className="flex items-baseline gap-1 font-mono">
+      {units.map(({ value, unit }) => (
+        <div key={unit} className="flex items-baseline gap-0.5">
+          <span className="text-sm font-bold text-slate-900 tabular-nums">{pad(value)}</span>
+          <span className="text-[11px] text-slate-400">{unit}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export default function CountdownBanner({ name, type, startDate, teeTime, picksDeadline, inProgress = false }: Props) {
+  const picksTarget = picksDeadline ?? (startDate + 'T01:00:00Z')
+
+  const [picksLeft, setPicksLeft] = useState<TimeLeft | null>(null)
+  const [teeLeft,   setTeeLeft]   = useState<TimeLeft | null>(null)
   const [initialized, setInitialized] = useState(false)
 
   useEffect(() => {
     setInitialized(true)
-    setTimeLeft(getTimeLeft(target))
-    const id = setInterval(() => setTimeLeft(getTimeLeft(target)), 1_000)
+    function tick() {
+      setPicksLeft(getTimeLeft(picksTarget))
+      setTeeLeft(getTimeLeft(teeTime))
+    }
+    tick()
+    const id = setInterval(tick, 1_000)
     return () => clearInterval(id)
-  }, [target])
+  }, [picksTarget, teeTime])
 
   if (!initialized) return null
 
-  // Tee time has passed — hide banner for upcoming, show "In Progress" for in_progress
-  if (!timeLeft && !inProgress) return null
+  // Hide banner once tee time passes (unless DB says in_progress)
+  if (!teeLeft && !inProgress) return null
 
-  // Underway = DB says in_progress AND tee time has passed
-  const underway = inProgress && !timeLeft
+  const underway = inProgress && !teeLeft
 
   return (
     <div className="bg-white border-b border-stone-200">
-      <div className="max-w-4xl mx-auto px-4 py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-0">
+      <div className="max-w-4xl mx-auto px-4 py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
 
         {/* Left — status label + tournament name + type badge */}
         <div className="flex items-center gap-2 flex-wrap">
@@ -85,22 +105,24 @@ export default function CountdownBanner({ name, type, startDate, picksDeadline, 
           </span>
         </div>
 
-        {/* Right — countdown (hidden once tee time passes) */}
-        {timeLeft && (
-          <div className="flex items-center gap-2.5 font-mono">
-            {[
-              { value: timeLeft.days,    unit: 'd' },
-              { value: timeLeft.hours,   unit: 'h' },
-              { value: timeLeft.minutes, unit: 'm' },
-              { value: timeLeft.seconds, unit: 's' },
-            ].map(({ value, unit }) => (
-              <div key={unit} className="flex items-baseline gap-0.5">
-                <span className="text-sm font-bold text-slate-900 tabular-nums">
-                  {pad(value)}
-                </span>
-                <span className="text-[11px] text-slate-400">{unit}</span>
+        {/* Right — picks-due + tee-time countdowns */}
+        {(picksLeft || teeLeft) && (
+          <div className="flex items-center gap-3">
+            {picksLeft && (
+              <div className="flex flex-col items-end">
+                <span className="text-[9px] uppercase tracking-widest text-slate-400 font-medium leading-tight">Picks due</span>
+                <CountdownDigits t={picksLeft} />
               </div>
-            ))}
+            )}
+            {picksLeft && teeLeft && (
+              <div className="w-px h-7 bg-stone-200 flex-shrink-0" />
+            )}
+            {teeLeft && (
+              <div className="flex flex-col items-end">
+                <span className="text-[9px] uppercase tracking-widest text-slate-400 font-medium leading-tight">Tee time</span>
+                <CountdownDigits t={teeLeft} />
+              </div>
+            )}
           </div>
         )}
 
