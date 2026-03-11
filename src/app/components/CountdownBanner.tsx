@@ -65,44 +65,42 @@ export default function CountdownBanner({ name, type, startDate, picksDeadline, 
 
   return (
     <div className="bg-white border-b border-stone-200">
-      <div className="max-w-4xl mx-auto px-4 py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-0">
+      <div className="max-w-4xl mx-auto px-4 py-2">
 
-        {/* Left — status label + tournament name + type badge */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {underway ? (
-            <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-medium text-emerald-600">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              In Progress
-            </span>
-          ) : (
-            <span className="text-[10px] uppercase tracking-widest text-slate-400 font-medium">
-              Next up
-            </span>
-          )}
-          <span className="text-sm font-semibold text-slate-800">{name}</span>
-          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_STYLES[type] ?? ''}`}>
-            {TYPE_LABELS[type] ?? type}
-          </span>
-        </div>
-
-        {/* Right — countdown (hidden once tee time passes) */}
-        {timeLeft && (
-          <div className="flex items-center gap-2.5 font-mono">
-            {[
-              { value: timeLeft.days,    unit: 'd' },
-              { value: timeLeft.hours,   unit: 'h' },
-              { value: timeLeft.minutes, unit: 'm' },
-              { value: timeLeft.seconds, unit: 's' },
-            ].map(({ value, unit }) => (
-              <div key={unit} className="flex items-baseline gap-0.5">
-                <span className="text-sm font-bold text-slate-900 tabular-nums">
-                  {pad(value)}
-                </span>
-                <span className="text-[11px] text-slate-400">{unit}</span>
-              </div>
-            ))}
+        {/* Row 1 — status label */}
+        {underway ? (
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[10px] uppercase tracking-widest font-medium text-emerald-600">In Progress</span>
           </div>
+        ) : (
+          <p className="text-[10px] uppercase tracking-widest text-slate-400 font-medium mb-0.5">Next up</p>
         )}
+
+        {/* Row 2 — tournament name + badge + countdown */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-sm font-semibold text-slate-800 truncate">{name}</span>
+            <span className={`flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_STYLES[type] ?? ''}`}>
+              {TYPE_LABELS[type] ?? type}
+            </span>
+          </div>
+          {timeLeft && (
+            <div className="flex items-center gap-2.5 font-mono flex-shrink-0">
+              {[
+                { value: timeLeft.days,    unit: 'd' },
+                { value: timeLeft.hours,   unit: 'h' },
+                { value: timeLeft.minutes, unit: 'm' },
+                { value: timeLeft.seconds, unit: 's' },
+              ].map(({ value, unit }) => (
+                <div key={unit} className="flex items-baseline gap-0.5">
+                  <span className="text-sm font-bold text-slate-900 tabular-nums">{pad(value)}</span>
+                  <span className="text-[11px] text-slate-400">{unit}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
       </div>
     </div>
