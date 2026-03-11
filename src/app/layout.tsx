@@ -4,7 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import NavLinks from "./components/NavLinks";
 import TournamentBanner from "./components/TournamentBanner";
 import FGLLogo from "./components/FGLLogo";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 import "./globals.css";
 
 const geistSans = Geist({

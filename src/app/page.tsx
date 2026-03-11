@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin as supabase } from '@/lib/supabase'
 import { getProjectedEarnings } from '@/lib/payoutTable'
 import StandingsChart, { ChartPoint } from './components/StandingsChart'
 
