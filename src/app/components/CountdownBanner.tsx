@@ -23,9 +23,9 @@ const TYPE_LABELS: Record<string, string> = {
   regular:   'Regular',
 }
 
-function resolveTarget(startDate: string, picksDeadline: string | null): string {
-  if (picksDeadline) return picksDeadline
-  return startDate + 'T01:00:00Z'
+function resolveTarget(startDate: string, teeTime: string | null): string {
+  if (teeTime) return teeTime
+  return startDate + 'T12:00:00Z'
 }
 
 function getTimeLeft(target: string) {
@@ -43,8 +43,8 @@ function pad(n: number) {
   return String(n).padStart(2, '0')
 }
 
-export default function CountdownBanner({ name, type, startDate, picksDeadline, inProgress = false }: Props) {
-  const target = resolveTarget(startDate, picksDeadline)
+export default function CountdownBanner({ name, type, startDate, teeTime, inProgress = false }: Props) {
+  const target = resolveTarget(startDate, teeTime)
   const [timeLeft, setTimeLeft] = useState<ReturnType<typeof getTimeLeft>>(null)
   const [initialized, setInitialized] = useState(false)
 
