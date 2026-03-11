@@ -39,23 +39,6 @@ function getTimeLeft(target: string | null): TimeLeft | null {
 
 function pad(n: number) { return String(n).padStart(2, '0') }
 
-// Show d/h/m when more than a day away; h/m/s when under a day
-function CountdownDigits({ t }: { t: TimeLeft }) {
-  const units = t.days > 0
-    ? [{ value: t.days, unit: 'd' }, { value: t.hours, unit: 'h' }, { value: t.minutes, unit: 'm' }]
-    : [{ value: t.hours, unit: 'h' }, { value: t.minutes, unit: 'm' }, { value: t.seconds, unit: 's' }]
-  return (
-    <div className="flex items-baseline gap-1 font-mono">
-      {units.map(({ value, unit }) => (
-        <div key={unit} className="flex items-baseline gap-0.5">
-          <span className="text-sm font-bold text-slate-900 tabular-nums">{pad(value)}</span>
-          <span className="text-[11px] text-slate-400">{unit}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 export default function CountdownBanner({ name, type, teeTime, inProgress = false }: Props) {
   const [teeLeft, setTeeLeft] = useState<TimeLeft | null>(null)
   const [initialized, setInitialized] = useState(false)
@@ -99,9 +82,18 @@ export default function CountdownBanner({ name, type, teeTime, inProgress = fals
 
         {/* Right — kick-off countdown */}
         {teeLeft && (
-          <div className="flex flex-col items-end flex-shrink-0">
-            <span className="text-[9px] uppercase tracking-widest text-slate-400 font-medium leading-tight">Kick-off</span>
-            <CountdownDigits t={teeLeft} />
+          <div className="flex items-center gap-2.5 font-mono flex-shrink-0">
+            {[
+              { value: teeLeft.days,    unit: 'd' },
+              { value: teeLeft.hours,   unit: 'h' },
+              { value: teeLeft.minutes, unit: 'm' },
+              { value: teeLeft.seconds, unit: 's' },
+            ].map(({ value, unit }) => (
+              <div key={unit} className="flex items-baseline gap-0.5">
+                <span className="text-sm font-bold text-slate-900 tabular-nums">{pad(value)}</span>
+                <span className="text-[11px] text-slate-400">{unit}</span>
+              </div>
+            ))}
           </div>
         )}
 
