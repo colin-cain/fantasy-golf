@@ -119,7 +119,7 @@ export default function CountdownBanner({ name, type, startDate, teeTime, picksD
             )}
             {teeLeft && (
               <div className="flex flex-col items-end">
-                <span className="text-[9px] uppercase tracking-widest text-slate-400 font-medium leading-tight">Tee time</span>
+                <span className="text-[9px] uppercase tracking-widest text-slate-400 font-medium leading-tight">Kick-off</span>
                 <CountdownDigits t={teeLeft} />
               </div>
             )}
