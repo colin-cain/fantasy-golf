@@ -11,6 +11,7 @@ type UsedPick = {
 type MemberPick = {
   golfer: string
   tournament: string
+  startDate: string
   pending?: boolean
 }
 
@@ -54,7 +55,7 @@ async function getData(): Promise<{ members: MemberUsed[]; completedCount: numbe
       byMember[name] = []
       pickedTournamentIds[name] = new Set()
     }
-    byMember[name].push({ golfer: pick.golfer_name, tournament: pick.tournaments.name })
+    byMember[name].push({ golfer: pick.golfer_name, tournament: pick.tournaments.name, startDate: pick.tournaments.start_date })
     pickedTournamentIds[name].add(pick.tournaments.id)
   }
 
@@ -69,9 +70,9 @@ async function getData(): Promise<{ members: MemberUsed[]; completedCount: numbe
     .map(member => ({
       member,
       picks: [
-        ...(byMember[member] ?? []),
+        ...(byMember[member] ?? []).sort((a, b) => a.startDate.localeCompare(b.startDate)),
         ...(inProgress && !pickedTournamentIds[member]?.has(inProgress.id)
-          ? [{ golfer: 'Pending', tournament: inProgress.name, pending: true }]
+          ? [{ golfer: 'Pending', tournament: inProgress.name, startDate: '9999', pending: true }]
           : []),
       ],
     }))
