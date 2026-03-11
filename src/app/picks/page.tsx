@@ -88,9 +88,9 @@ export default async function GolfersPage() {
 
   return (
     <main className="min-h-screen bg-stone-100">
-      <div className="max-w-4xl mx-auto px-4 py-12">
+      <div className="max-w-4xl mx-auto px-4 py-6 sm:py-12">
 
-        <div className="mb-8">
+        <div className="mb-5 sm:mb-8">
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Pick History</h1>
           <p className="text-slate-500 text-sm mt-1">
             2026 · Picks through {countWord} tournament{completedCount !== 1 ? 's' : ''}

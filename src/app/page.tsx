@@ -231,9 +231,9 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen bg-stone-100">
-      <div className="max-w-4xl mx-auto px-4 py-12">
+      <div className="max-w-4xl mx-auto px-4 py-6 sm:py-12">
 
-        <div className="mb-8">
+        <div className="mb-5 sm:mb-8">
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Season Standings</h1>
           <p className="text-slate-500 text-sm mt-1">
             2026 · Based on PGA Tour prize earnings
@@ -244,7 +244,7 @@ export default async function HomePage() {
         <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
           <div className="px-5 py-3 border-b border-stone-100 flex items-center gap-2">
             <span className="w-1.5 h-1.5 flex-shrink-0 invisible" />
-            <span className="text-xs uppercase tracking-widest text-slate-400 font-medium max-w-[7rem] sm:max-w-none">Current Standings</span>
+            <span className="text-xs uppercase tracking-widest text-slate-400 font-medium whitespace-nowrap">Current Standings</span>
           </div>
           <table className="w-full text-sm table-fixed">
             <colgroup>
@@ -256,7 +256,7 @@ export default async function HomePage() {
               <tr className="bg-stone-50 border-b border-stone-200 text-xs uppercase tracking-widest text-slate-400">
                 <th className="px-2 sm:px-4 py-3 text-left tracking-tight">Position</th>
                 <th className="px-2 sm:px-4 py-3 text-left tracking-tight">Player</th>
-                <th className="px-2 sm:px-5 py-3 text-right leading-tight tracking-tight">Cumulative Earnings</th>
+                <th className="px-2 sm:px-5 py-3 text-right leading-tight tracking-tight"><span className="sm:hidden">Earnings</span><span className="hidden sm:inline">Cumulative Earnings</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
