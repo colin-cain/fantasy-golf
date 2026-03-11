@@ -5,9 +5,9 @@ import { useEffect, useState } from 'react'
 type Props = {
   name: string
   type: string
-  startDate: string         // unused by countdown; kept for API compatibility
-  teeTime: string | null    // ISO 8601 UTC — kick-off countdown target
-  picksDeadline: string | null // unused; kept for API compatibility
+  startDate: string         // "YYYY-MM-DD" — fallback if no picks_deadline
+  teeTime: string | null    // actual first tee time — used by cron logic, not the countdown
+  picksDeadline: string | null // ISO 8601 UTC — what the countdown counts down to
   inProgress?: boolean      // true when status = in_progress in the DB
 }
 
@@ -23,10 +23,12 @@ const TYPE_LABELS: Record<string, string> = {
   regular:   'Regular',
 }
 
-type TimeLeft = { days: number; hours: number; minutes: number; seconds: number }
+function resolveTarget(startDate: string, picksDeadline: string | null): string {
+  if (picksDeadline) return picksDeadline
+  return startDate + 'T01:00:00Z'
+}
 
-function getTimeLeft(target: string | null): TimeLeft | null {
-  if (!target) return null
+function getTimeLeft(target: string) {
   const diff = new Date(target).getTime() - Date.now()
   if (diff <= 0) return null
   return {
@@ -37,30 +39,33 @@ function getTimeLeft(target: string | null): TimeLeft | null {
   }
 }
 
-function pad(n: number) { return String(n).padStart(2, '0') }
+function pad(n: number) {
+  return String(n).padStart(2, '0')
+}
 
-export default function CountdownBanner({ name, type, teeTime, inProgress = false }: Props) {
-  const [teeLeft, setTeeLeft] = useState<TimeLeft | null>(null)
+export default function CountdownBanner({ name, type, startDate, picksDeadline, inProgress = false }: Props) {
+  const target = resolveTarget(startDate, picksDeadline)
+  const [timeLeft, setTimeLeft] = useState<ReturnType<typeof getTimeLeft>>(null)
   const [initialized, setInitialized] = useState(false)
 
   useEffect(() => {
     setInitialized(true)
-    function tick() { setTeeLeft(getTimeLeft(teeTime)) }
-    tick()
-    const id = setInterval(tick, 1_000)
+    setTimeLeft(getTimeLeft(target))
+    const id = setInterval(() => setTimeLeft(getTimeLeft(target)), 1_000)
     return () => clearInterval(id)
-  }, [teeTime])
+  }, [target])
 
   if (!initialized) return null
 
-  // Hide banner once tee time passes (unless DB says in_progress)
-  if (!teeLeft && !inProgress) return null
+  // Tee time has passed — hide banner for upcoming, show "In Progress" for in_progress
+  if (!timeLeft && !inProgress) return null
 
-  const underway = inProgress && !teeLeft
+  // Underway = DB says in_progress AND tee time has passed
+  const underway = inProgress && !timeLeft
 
   return (
     <div className="bg-white border-b border-stone-200">
-      <div className="max-w-4xl mx-auto px-4 py-2.5 flex items-center justify-between">
+      <div className="max-w-4xl mx-auto px-4 py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-0">
 
         {/* Left — status label + tournament name + type badge */}
         <div className="flex items-center gap-2 flex-wrap">
@@ -80,17 +85,19 @@ export default function CountdownBanner({ name, type, teeTime, inProgress = fals
           </span>
         </div>
 
-        {/* Right — kick-off countdown */}
-        {teeLeft && (
-          <div className="flex items-center gap-2.5 font-mono flex-shrink-0">
+        {/* Right — countdown (hidden once tee time passes) */}
+        {timeLeft && (
+          <div className="flex items-center gap-2.5 font-mono">
             {[
-              { value: teeLeft.days,    unit: 'd' },
-              { value: teeLeft.hours,   unit: 'h' },
-              { value: teeLeft.minutes, unit: 'm' },
-              { value: teeLeft.seconds, unit: 's' },
+              { value: timeLeft.days,    unit: 'd' },
+              { value: timeLeft.hours,   unit: 'h' },
+              { value: timeLeft.minutes, unit: 'm' },
+              { value: timeLeft.seconds, unit: 's' },
             ].map(({ value, unit }) => (
               <div key={unit} className="flex items-baseline gap-0.5">
-                <span className="text-sm font-bold text-slate-900 tabular-nums">{pad(value)}</span>
+                <span className="text-sm font-bold text-slate-900 tabular-nums">
+                  {pad(value)}
+                </span>
                 <span className="text-[11px] text-slate-400">{unit}</span>
               </div>
             ))}
