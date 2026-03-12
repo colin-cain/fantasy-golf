@@ -120,11 +120,13 @@ async function getLiveProjections(): Promise<{
 
   const golferNames = (picks as unknown as LivePick[]).map(p => p.golfer_name)
 
-  // Fetch current positions from leaderboard cache
+  // Fetch current positions from leaderboard cache — filter by tournament so
+  // stale data from a previous tournament never bleeds into live projections
   const { data: cache } = await supabase
     .from('leaderboard_cache')
     .select('golfer_name, position')
     .in('golfer_name', golferNames)
+    .eq('tournament_id', tournament.id)
 
   const positionMap = Object.fromEntries(
     ((cache ?? []) as LiveCacheRow[]).map(r => [r.golfer_name, r.position])
