@@ -107,8 +107,8 @@ export default function TournamentBanner({ name, type, startDate, teeTime, picks
             <div className="fgl-ticker-track flex items-stretch whitespace-nowrap">
               {[...picks, ...picks].map(({ member, golfer, position, total, roundScore, thru, teeTime }, i) => {
                 const lastName = golfer.split(' ').slice(1).join(' ') || golfer
-                const scoreColor = total?.startsWith('-') ? 'text-red-600' : 'text-zinc-900'
-                const roundColor = roundScore?.startsWith('-') ? 'text-red-500' : 'text-zinc-400'
+                const scoreColor = total?.match(/^-\d/) ? 'text-red-600' : 'text-zinc-900'
+                const roundColor = roundScore?.match(/^-\d/) ? 'text-red-500' : 'text-zinc-400'
                 const notStarted = !thru || thru === '0'
                 const tsMs = teeTime ? parseInt(teeTime) : NaN
                 const formattedTeeTime = !isNaN(tsMs) && tsMs > 0
