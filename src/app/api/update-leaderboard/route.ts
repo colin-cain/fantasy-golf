@@ -31,15 +31,36 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Find the in-progress tournament in our DB
-  const { data: tournament, error: tErr } = await supabase
+  // Find the in-progress tournament in our DB.
+  // If none found, check for an upcoming tournament whose tee_time has passed
+  // and auto-promote it to in_progress so we never need a manual flip.
+  let { data: tournament } = await supabase
     .from('tournaments')
     .select('id, name, tee_time, api_tourn_id, purse')
     .eq('status', 'in_progress')
     .limit(1)
     .single()
 
-  if (tErr || !tournament) {
+  if (!tournament) {
+    const { data: upcoming } = await supabase
+      .from('tournaments')
+      .select('id, name, tee_time, api_tourn_id, purse')
+      .eq('status', 'upcoming')
+      .lte('tee_time', new Date().toISOString())
+      .order('tee_time', { ascending: true })
+      .limit(1)
+      .single()
+
+    if (upcoming) {
+      await supabaseAdmin
+        .from('tournaments')
+        .update({ status: 'in_progress' })
+        .eq('id', upcoming.id)
+      tournament = upcoming
+    }
+  }
+
+  if (!tournament) {
     return NextResponse.json({ message: 'No tournament in progress' })
   }
 
