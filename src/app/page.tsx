@@ -274,11 +274,9 @@ export default async function HomePage() {
                     </td>
                     <td className="px-2 sm:px-4 py-3">
                       <span className="font-medium text-slate-900">{member.name}</span>
-                      {!live && (
-                        <div className="mt-1.5 h-1 rounded-full bg-stone-100 overflow-hidden">
-                          <div className="h-full rounded-full bg-emerald-400" style={{ width: `${pct}%` }} />
-                        </div>
-                      )}
+                      <div className="mt-1.5 h-1 rounded-full bg-stone-100 overflow-hidden">
+                        <div className="h-full rounded-full bg-emerald-400" style={{ width: `${pct}%` }} />
+                      </div>
                     </td>
                     <td className="px-2 sm:px-5 py-3 text-right font-mono text-slate-900 font-semibold text-xs sm:text-sm">
                       <Dollars n={member.total_earnings} />
