@@ -266,7 +266,7 @@ export async function GET(req: NextRequest) {
     }
   })
 
-  const { error: upsertErr } = await supabase
+  const { error: upsertErr } = await supabaseAdmin
     .from('leaderboard_cache')
     .upsert(rows, { onConflict: 'golfer_name' })
 
