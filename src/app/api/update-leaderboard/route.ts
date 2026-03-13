@@ -129,10 +129,11 @@ export async function GET(req: NextRequest) {
     const allFinished  = cached.every((r) => r.thru === 'F')
     const updatedToday = cached.some((r) => r.last_updated?.slice(0, 10) === today)
 
+    const msPerDay = 24 * 60 * 60 * 1000
+
     if (allFinished && updatedToday) {
       const rawRound = cached[0]?.round
       const cachedRound = typeof rawRound === 'number' ? rawRound : parseInt(String(rawRound ?? '0'), 10)
-      const msPerDay = 24 * 60 * 60 * 1000
       const daysSinceTeeTime = tournament.tee_time
         ? Math.floor((now.getTime() - new Date(tournament.tee_time).getTime()) / msPerDay)
         : 0
@@ -142,6 +143,17 @@ export async function GET(req: NextRequest) {
       // API can return "Official" status and we can mark the tournament complete.
       if (cachedRound >= expectedRound && cachedRound < 4) {
         return NextResponse.json({ message: 'All picked players have finished their round for today' })
+      }
+    }
+
+    // Between rounds: all finished but not yet updated today — we're in the overnight
+    // gap before the next round starts. Block until the estimated next round tee time
+    // (same time-of-day as the original tee time) to avoid burning API quota overnight.
+    if (allFinished && !updatedToday && tournament.tee_time) {
+      const daysSinceTeeTime = Math.floor((now.getTime() - new Date(tournament.tee_time).getTime()) / msPerDay)
+      const nextRoundEstimate = new Date(new Date(tournament.tee_time).getTime() + daysSinceTeeTime * msPerDay)
+      if (now < nextRoundEstimate) {
+        return NextResponse.json({ message: 'Between rounds — waiting for next round to start', nextRoundEstimate })
       }
     }
   }
