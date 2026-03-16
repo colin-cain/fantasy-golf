@@ -21,7 +21,7 @@ export default function RulesPage() {
               <li className="flex gap-2"><span className="text-slate-300 mt-0.5">—</span>No player can be used more than once per team across the season.</li>
               <li className="flex gap-2"><span className="text-slate-300 mt-0.5">—</span>No player can be picked twice in the same week.</li>
               <li className="flex gap-2"><span className="text-slate-300 mt-0.5">—</span>Picks are submitted to the text group.</li>
-              <li className="flex gap-2"><span className="text-slate-300 mt-0.5">—</span>If a pick hasn&apos;t been submitted by <span className="font-medium text-slate-800">7 PM MT the day before the round</span>, remaining members may jump in and pick first.</li>
+              <li className="flex gap-2"><span className="text-slate-300 mt-0.5">—</span><span>If a pick hasn&apos;t been submitted by 7 PM MT the day before the round, remaining members may jump in and pick first.</span></li>
             </ul>
           </div>
 
