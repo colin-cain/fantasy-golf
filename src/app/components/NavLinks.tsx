@@ -8,6 +8,7 @@ const links = [
   { href: '/results',  label: 'Results'   },
   { href: '/picks',    label: 'Picks'     },
   { href: '/schedule', label: 'Schedule'  },
+  { href: '/rules',    label: 'Rules'     },
 ]
 
 export default function NavLinks() {
