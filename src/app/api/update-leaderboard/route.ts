@@ -245,7 +245,7 @@ export async function GET(req: NextRequest) {
   if (roundStatus === 'Official') {
     tournamentUpdate.status = 'completed'
   }
-  await supabase
+  await supabaseAdmin
     .from('tournaments')
     .update(tournamentUpdate)
     .eq('id', tournament.id)
