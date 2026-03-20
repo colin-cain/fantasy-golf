@@ -241,8 +241,9 @@ export async function GET(req: NextRequest) {
   // When the final round goes "Official", also mark the tournament as complete so the
   // frontend stops showing it as in-progress and the cron stops polling it.
   const roundStatus: string | null = typeof lb.roundStatus === 'string' ? lb.roundStatus : null
+  const currentRound = parseMongo(lb.roundId)
   const tournamentUpdate: Record<string, unknown> = { round_status: roundStatus }
-  if (roundStatus === 'Official') {
+  if (roundStatus === 'Official' && currentRound === 4) {
     tournamentUpdate.status = 'completed'
   }
   await supabaseAdmin
