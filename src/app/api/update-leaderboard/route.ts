@@ -242,14 +242,6 @@ export async function GET(req: NextRequest) {
   // frontend stops showing it as in-progress and the cron stops polling it.
   const roundStatus: string | null = typeof lb.roundStatus === 'string' ? lb.roundStatus : null
   const currentRound = parseMongo(lb.roundId)
-  const tournamentUpdate: Record<string, unknown> = { round_status: roundStatus }
-  if (roundStatus === 'Official' && currentRound === 4) {
-    tournamentUpdate.status = 'completed'
-  }
-  await supabaseAdmin
-    .from('tournaments')
-    .update(tournamentUpdate)
-    .eq('id', tournament.id)
 
   // Upsert every golfer row into leaderboard_cache
   const rows = lb.leaderboardRows.map((row: {
@@ -339,6 +331,17 @@ export async function GET(req: NextRequest) {
       console.error('[update-leaderboard] earnings fetch failed:', err)
     }
   }
+
+  // Persist round status. Only mark completed once earnings are confirmed —
+  // if the earnings API isn't ready yet the cron will keep retrying next run.
+  const tournamentUpdate: Record<string, unknown> = { round_status: roundStatus }
+  if (roundStatus === 'Official' && currentRound === 4 && earningsFinalized > 0) {
+    tournamentUpdate.status = 'completed'
+  }
+  await supabaseAdmin
+    .from('tournaments')
+    .update(tournamentUpdate)
+    .eq('id', tournament.id)
 
   return NextResponse.json({
     success: true,
