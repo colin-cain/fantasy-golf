@@ -335,8 +335,8 @@ export async function GET(req: NextRequest) {
           earningsFinalized = tPicks.length
         }
       }
-    } catch {
-      // Non-fatal: finalize-earnings cron will pick this up on its next run
+    } catch (err) {
+      console.error('[update-leaderboard] earnings fetch failed:', err)
     }
   }
 
