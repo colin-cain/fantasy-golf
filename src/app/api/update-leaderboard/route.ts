@@ -81,6 +81,7 @@ export async function GET(req: NextRequest) {
       .from('leaderboard_cache')
       .select('golfer_name, thru, last_updated, round, tee_time')
       .in('golfer_name', pickedNames)
+      .eq('tournament_id', tournament.id)
     cached = (data ?? []) as CacheRow[]
   }
 
@@ -151,7 +152,7 @@ export async function GET(req: NextRequest) {
     // (same time-of-day as the original tee time) to avoid burning API quota overnight.
     if (allFinished && !updatedToday && tournament.tee_time) {
       const daysSinceTeeTime = Math.floor((now.getTime() - new Date(tournament.tee_time).getTime()) / msPerDay)
-      const nextRoundEstimate = new Date(new Date(tournament.tee_time).getTime() + daysSinceTeeTime * msPerDay)
+      const nextRoundEstimate = new Date(new Date(tournament.tee_time).getTime() + (daysSinceTeeTime + 1) * msPerDay)
       if (now < nextRoundEstimate) {
         return NextResponse.json({ message: 'Between rounds — waiting for next round to start', nextRoundEstimate })
       }
