@@ -229,7 +229,7 @@ export async function GET(req: NextRequest) {
     apiMatchedName = match.name
 
     // Persist so future cron calls skip the schedule fetch entirely
-    await supabase
+    await supabaseAdmin
       .from('tournaments')
       .update({ api_tourn_id: tournId })
       .eq('id', tournament.id)
@@ -252,7 +252,7 @@ export async function GET(req: NextRequest) {
   const freshPurse = typeof rawPurseVal === 'number' && rawPurseVal > 0 ? rawPurseVal : 0
   if (!tournament.purse || tournament.purse === 0) {
     if (freshPurse > 0) {
-      await supabase
+      await supabaseAdmin
         .from('tournaments')
         .update({ purse: freshPurse })
         .eq('id', tournament.id)
