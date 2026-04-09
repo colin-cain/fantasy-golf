@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
   // and auto-promote it to in_progress so we never need a manual flip.
   let { data: tournament } = await supabase
     .from('tournaments')
-    .select('id, name, tee_time, api_tourn_id, purse')
+    .select('id, name, tee_time, api_tourn_id, purse, round_status')
     .eq('status', 'in_progress')
     .limit(1)
     .single()
@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
   if (!tournament) {
     const { data: upcoming } = await supabase
       .from('tournaments')
-      .select('id, name, tee_time, api_tourn_id, purse')
+      .select('id, name, tee_time, api_tourn_id, purse, round_status')
       .eq('status', 'upcoming')
       .lte('tee_time', new Date().toISOString())
       .order('tee_time', { ascending: true })
@@ -155,6 +155,29 @@ export async function GET(req: NextRequest) {
       const nextRoundEstimate = new Date(new Date(tournament.tee_time).getTime() + (daysSinceTeeTime + 1) * msPerDay)
       if (now < nextRoundEstimate) {
         return NextResponse.json({ message: 'Between rounds — waiting for next round to start', nextRoundEstimate })
+      }
+    }
+
+    // Guard 3: pending-official throttle — round 4 is complete but earnings not yet
+    // confirmed. Guard 2a doesn't block round 4 (by design), and once updatedToday=true
+    // guard 2b doesn't fire, so without this we'd poll every 30 min indefinitely.
+    // Rate-limit to once every 2 hours when stuck in this state.
+    if (allFinished) {
+      const rawRound = cached[0]?.round
+      const cachedRound = typeof rawRound === 'number' ? rawRound : parseInt(String(rawRound ?? '0'), 10)
+      if (cachedRound >= 4) {
+        const mostRecent = cached.reduce<string | null>((latest, r) => {
+          if (!r.last_updated) return latest
+          if (!latest || r.last_updated > latest) return r.last_updated
+          return latest
+        }, null)
+        if (mostRecent) {
+          const msSinceUpdate = now.getTime() - new Date(mostRecent).getTime()
+          const twoHours = 2 * 60 * 60 * 1000
+          if (msSinceUpdate < twoHours) {
+            return NextResponse.json({ message: 'Round 4 complete — throttling until earnings confirmed', nextCheckAt: new Date(new Date(mostRecent).getTime() + twoHours) })
+          }
+        }
       }
     }
   }
