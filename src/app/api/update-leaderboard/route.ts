@@ -246,17 +246,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'No leaderboard data from API' }, { status: 502 })
   }
 
-  // Cache the tournament purse if we don't have it yet.
-  // The API typically returns purse as a MongoDB $numberInt or plain number.
+  // Sync the tournament purse from the API whenever it returns a non-zero value.
+  // Always prefer the API value — this handles cases where the purse was manually
+  // seeded (e.g. the Masters doesn't announce until after the cut) and will be
+  // overwritten with the official figure once the API populates it.
   const rawPurseVal = parseMongo(lb.purse ?? lb.totalPurse ?? lb.prizeMoney)
   const freshPurse = typeof rawPurseVal === 'number' && rawPurseVal > 0 ? rawPurseVal : 0
-  if (!tournament.purse || tournament.purse === 0) {
-    if (freshPurse > 0) {
-      await supabaseAdmin
-        .from('tournaments')
-        .update({ purse: freshPurse })
-        .eq('id', tournament.id)
-    }
+  if (freshPurse > 0 && freshPurse !== tournament.purse) {
+    await supabaseAdmin
+      .from('tournaments')
+      .update({ purse: freshPurse })
+      .eq('id', tournament.id)
   }
   const effectivePurse = (tournament.purse && tournament.purse > 0) ? tournament.purse : freshPurse
 
