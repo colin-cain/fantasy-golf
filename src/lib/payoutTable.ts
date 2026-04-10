@@ -152,6 +152,20 @@ export function getPayoutTable(tournamentType: string | null | undefined): numbe
 }
 
 /**
+ * Returns the effective cut line for a tournament.
+ * Signature events have no cut (field ~50-70, everyone gets paid).
+ * The explicit cutLine from the DB takes precedence over type-based defaults.
+ */
+export function getEffectiveCutLine(
+  tournamentType: string | null | undefined,
+  cutLine: number | null | undefined
+): number {
+  if (tournamentType === 'signature') return Infinity
+  if (cutLine != null && cutLine > 0) return cutLine
+  return 65 // standard PGA Tour default
+}
+
+/**
  * Given a position string and tournament purse, returns the projected prize money.
  * Returns 0 for missed cuts, withdrawals, or positions outside the payout range.
  *
@@ -161,12 +175,14 @@ export function getPayoutTable(tournamentType: string | null | undefined): numbe
 export function getProjectedEarnings(
   positionStr: string | null | undefined,
   purse: number,
-  tournamentType?: string | null
+  tournamentType?: string | null,
+  cutLine?: number | null
 ): number {
   if (!purse || purse <= 0) return 0
   const table = getPayoutTable(tournamentType)
   const pos = parsePosition(positionStr)
   if (pos === null || pos < 1 || pos > table.length) return 0
+  if (pos > getEffectiveCutLine(tournamentType, cutLine)) return 0
   return Math.round(purse * table[pos - 1])
 }
 
