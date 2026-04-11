@@ -148,13 +148,23 @@ export async function GET(req: NextRequest) {
     }
 
     // Between rounds: all finished but not yet updated today — we're in the overnight
-    // gap before the next round starts. Block until the estimated next round tee time
-    // (same time-of-day as the original tee time) to avoid burning API quota overnight.
-    if (allFinished && !updatedToday && tournament.tee_time) {
-      const daysSinceTeeTime = Math.floor((now.getTime() - new Date(tournament.tee_time).getTime()) / msPerDay)
-      const nextRoundEstimate = new Date(new Date(tournament.tee_time).getTime() + (daysSinceTeeTime + 1) * msPerDay)
-      if (now < nextRoundEstimate) {
-        return NextResponse.json({ message: 'Between rounds — waiting for next round to start', nextRoundEstimate })
+    // gap before the next round starts. Block for up to 14 hours after the last update
+    // to avoid burning API quota overnight, but always allow through after 14h so we
+    // don't accidentally block into the next day's round (tee-time math is unreliable
+    // for multi-day events where rounds don't start at the same time each day).
+    if (allFinished && !updatedToday) {
+      const mostRecentUpdate = cached.reduce<string | null>((latest, r) => {
+        if (!r.last_updated) return latest
+        if (!latest || r.last_updated > latest) return r.last_updated
+        return latest
+      }, null)
+      if (mostRecentUpdate) {
+        const msSinceUpdate = now.getTime() - new Date(mostRecentUpdate).getTime()
+        const fourteenHours = 14 * 60 * 60 * 1000
+        if (msSinceUpdate < fourteenHours) {
+          const nextRoundEstimate = new Date(new Date(mostRecentUpdate).getTime() + fourteenHours)
+          return NextResponse.json({ message: 'Between rounds — waiting for next round to start', nextRoundEstimate })
+        }
       }
     }
 
