@@ -72,6 +72,65 @@ const PAYOUTS: number[] = [
 ]
 
 /**
+ * Masters Tournament payout percentages by finishing position (1-indexed).
+ * Top 50 + ties make the cut; positions beyond 50 receive $0.
+ * Percentages derived from the official 2026 Masters payout table ($22.5M purse).
+ * Source: https://sports.yahoo.com/articles/masters-2026-heres-prize-money-150331392.html
+ */
+const MASTERS_PAYOUTS: number[] = [
+  0.20000, // 1  — $4,500,000
+  0.10800, // 2  — $2,430,000
+  0.06800, // 3  — $1,530,000
+  0.04800, // 4  — $1,080,000
+  0.04000, // 5  — $900,000
+  0.03600, // 6  — $810,000
+  0.03350, // 7  — $753,750
+  0.03100, // 8  — $697,500
+  0.02900, // 9  — $652,500
+  0.02700, // 10 — $607,500
+  0.02500, // 11 — $562,500
+  0.02300, // 12 — $517,500
+  0.02100, // 13 — $472,500
+  0.01900, // 14 — $427,500
+  0.01800, // 15 — $405,000
+  0.01700, // 16 — $382,500
+  0.01600, // 17 — $360,000
+  0.01500, // 18 — $337,500
+  0.01400, // 19 — $315,000
+  0.01300, // 20 — $292,500
+  0.01200, // 21 — $270,000
+  0.01120, // 22 — $252,000
+  0.01040, // 23 — $234,000
+  0.00960, // 24 — $216,000
+  0.00880, // 25 — $198,000
+  0.00800, // 26 — $180,000
+  0.00766, // 27 — $172,250 (approx)
+  0.00740, // 28 — $166,500
+  0.00710, // 29 — $159,750
+  0.00680, // 30 — $153,000
+  0.00650, // 31 — $146,250
+  0.00620, // 32 — $139,500
+  0.00590, // 33 — $132,750
+  0.00565, // 34 — $127,125 (approx)
+  0.00540, // 35 — $121,500
+  0.00515, // 36 — $115,875 (approx)
+  0.00490, // 37 — $110,250
+  0.00470, // 38 — $105,750
+  0.00450, // 39 — $101,250
+  0.00430, // 40 — $96,750
+  0.00410, // 41 — $92,250
+  0.00390, // 42 — $87,750
+  0.00370, // 43 — $83,250
+  0.00350, // 44 — $78,750
+  0.00330, // 45 — $74,250
+  0.00310, // 46 — $69,750
+  0.00290, // 47 — $65,250
+  0.00274, // 48 — $61,650 (approx)
+  0.00260, // 49 — $58,500
+  0.00252, // 50 — $56,700
+]
+
+/**
  * Signature Event payout percentages by finishing position (1-indexed).
  * Signature Events have ~50-70 players (no cut), frontloaded payouts, and a $20M purse.
  * Positions beyond index 51 receive $0.
@@ -148,7 +207,9 @@ function parsePosition(pos: string | null | undefined): number | null {
  * Signature Events use a frontloaded table; everything else uses the standard table.
  */
 export function getPayoutTable(tournamentType: string | null | undefined): number[] {
-  return tournamentType === 'signature' ? SIGNATURE_PAYOUTS : PAYOUTS
+  if (tournamentType === 'signature') return SIGNATURE_PAYOUTS
+  if (tournamentType === 'major') return MASTERS_PAYOUTS
+  return PAYOUTS
 }
 
 /**
