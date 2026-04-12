@@ -248,6 +248,15 @@ export function getProjectedEarnings(
 }
 
 /**
+ * Returns the flat payout for a missed cut at a given tournament type.
+ * The Masters (and other majors) pay all professionals who miss the cut a flat fee.
+ */
+export function getMissedCutPayout(tournamentType: string | null | undefined): number {
+  if (tournamentType === 'major') return 25000
+  return 0
+}
+
+/**
  * Calculates final (official) earnings for a golfer, correctly averaging
  * prize money across tied positions.
  *
@@ -264,7 +273,16 @@ export function getFinalEarnings(
 ): number {
   if (!purse || purse <= 0) return 0
   const pos = parsePosition(positionStr)
-  if (pos === null || pos < 1) return 0
+  if (pos === null || pos < 1) {
+    // Flat missed-cut payout for tournaments that pay non-qualifiers (e.g. Masters = $25k)
+    if (positionStr) {
+      const str = positionStr.trim().toUpperCase()
+      if (str === 'MC' || str === 'CUT' || str === 'MDF') {
+        return getMissedCutPayout(tournamentType)
+      }
+    }
+    return 0
+  }
   const table = getPayoutTable(tournamentType)
   const count = Math.max(1, tiedCount)
   let sum = 0
