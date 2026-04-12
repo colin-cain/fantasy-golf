@@ -240,6 +240,15 @@ export function getProjectedEarnings(
   cutLine?: number | null
 ): number {
   if (!purse || purse <= 0) return 0
+
+  // If the player has already missed the cut, their payout is known and fixed
+  if (positionStr) {
+    const str = positionStr.trim().toUpperCase()
+    if (str === 'MC' || str === 'CUT' || str === 'MDF') {
+      return getMissedCutPayout(tournamentType)
+    }
+  }
+
   const table = getPayoutTable(tournamentType)
   const pos = parsePosition(positionStr)
   if (pos === null || pos < 1 || pos > table.length) return 0
