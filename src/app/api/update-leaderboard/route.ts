@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
   // and auto-promote it to in_progress so we never need a manual flip.
   let { data: tournament } = await supabase
     .from('tournaments')
-    .select('id, name, tee_time, api_tourn_id, purse, round_status')
+    .select('id, name, tee_time, api_tourn_id, purse, round_status, type')
     .eq('status', 'in_progress')
     .limit(1)
     .single()
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
   if (!tournament) {
     const { data: upcoming } = await supabase
       .from('tournaments')
-      .select('id, name, tee_time, api_tourn_id, purse, round_status')
+      .select('id, name, tee_time, api_tourn_id, purse, round_status, type')
       .eq('status', 'upcoming')
       .lte('tee_time', new Date().toISOString())
       .order('tee_time', { ascending: true })
