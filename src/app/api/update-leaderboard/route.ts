@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
+import { getMissedCutPayout } from '@/lib/payoutTable'
 
 const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY!
 const CRON_SECRET  = process.env.CRON_SECRET!
@@ -329,8 +330,18 @@ export async function GET(req: NextRequest) {
       if (earningsData.leaderboard) {
         // playerId → canonical full name (from the leaderboard we already fetched)
         const pidToName: Record<string, string> = {}
-        for (const row of lb.leaderboardRows as { playerId: string; firstName: string; lastName: string }[]) {
+        // playerId → position string (for missed-cut fallback)
+        const pidToPosition: Record<string, string> = {}
+        for (const row of lb.leaderboardRows as { playerId: string; firstName: string; lastName: string; position: string }[]) {
           pidToName[row.playerId] = `${row.firstName} ${row.lastName}`
+          pidToPosition[row.playerId] = row.position ?? ''
+        }
+
+        // normalized name → position (for missed-cut fallback lookup by name)
+        const nameToPosition: Record<string, string> = {}
+        for (const [pid, name] of Object.entries(pidToName)) {
+          const key = name.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim()
+          nameToPosition[key] = pidToPosition[pid] ?? ''
         }
 
         // normalized name → earnings
@@ -354,8 +365,16 @@ export async function GET(req: NextRequest) {
 
         if (tPicks?.length) {
           for (const pick of tPicks) {
-            const key      = pick.golfer_name.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim()
-            const earnings = nameToEarnings[key] ?? 0
+            const key           = pick.golfer_name.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim()
+            let   earnings      = nameToEarnings[key] ?? 0
+            // If earnings API returned nothing, check if the player missed the cut
+            // and apply the flat missed-cut payout (e.g. Masters pays $25k to MC players)
+            if (earnings === 0) {
+              const pos = (nameToPosition[key] ?? '').trim().toUpperCase()
+              if (pos === 'MC' || pos === 'CUT' || pos === 'MDF') {
+                earnings = getMissedCutPayout(tournament.type as string | null)
+              }
+            }
             await supabaseAdmin.from('picks').update({ earnings }).eq('id', pick.id)
           }
           earningsFinalized = tPicks.length
