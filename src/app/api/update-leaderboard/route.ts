@@ -75,12 +75,12 @@ export async function GET(req: NextRequest) {
 
   const pickedNames = (picks ?? []).map((p: { golfer_name: string }) => p.golfer_name)
 
-  type CacheRow = { golfer_name: string; thru: string; last_updated: string; round: unknown; tee_time: string | null }
+  type CacheRow = { golfer_name: string; thru: string; last_updated: string; round: unknown; tee_time: string | null; position: string | null }
   let cached: CacheRow[] = []
   if (pickedNames.length > 0) {
     const { data } = await supabase
       .from('leaderboard_cache')
-      .select('golfer_name, thru, last_updated, round, tee_time')
+      .select('golfer_name, thru, last_updated, round, tee_time, position')
       .in('golfer_name', pickedNames)
       .eq('tournament_id', tournament.id)
     cached = (data ?? []) as CacheRow[]
@@ -128,7 +128,8 @@ export async function GET(req: NextRequest) {
   // the first cron call would stamp last_updated=today and block all subsequent calls.
   if (cached.length > 0 && cached.length === pickedNames.length) {
     const today = now.toISOString().slice(0, 10) // "YYYY-MM-DD"
-    const allFinished  = cached.every((r) => r.thru === 'F')
+    const ELIMINATED = new Set(['CUT', 'MC', 'WD', 'DQ', 'MDF'])
+    const allFinished  = cached.every((r) => r.thru === 'F' || ELIMINATED.has((r.position ?? '').trim().toUpperCase()))
     const updatedToday = cached.some((r) => r.last_updated?.slice(0, 10) === today)
 
     const msPerDay = 24 * 60 * 60 * 1000
