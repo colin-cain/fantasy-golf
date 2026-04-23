@@ -279,32 +279,33 @@ export async function GET(req: NextRequest) {
   const roundStatus: string | null = typeof lb.roundStatus === 'string' ? lb.roundStatus : null
   const currentRound = parseMongo(lb.roundId)
 
-  // Upsert every golfer row into leaderboard_cache
-  const rows = lb.leaderboardRows.map((row: {
-    firstName: string
-    lastName: string
-    position: string
-    total: string
-    currentRoundScore?: string
-    thru: string
-    currentRound: unknown
-    teeTime?: string
-    teeTimeTimestamp?: unknown
-  }) => {
-    // Prefer the ms timestamp (timezone-agnostic) so the client can localise it;
-    // fall back to the raw time string (e.g. "11:55am") if not present.
+  // Upsert every golfer row into leaderboard_cache.
+  // The Zurich Classic uses a team format where each leaderboard row represents a
+  // team with a nested `players` array. Expand these into individual player rows,
+  // each inheriting the team's position and score.
+  const isTeamFormat = lb.leaderboardRows.length > 0 && Array.isArray(lb.leaderboardRows[0]?.players)
+  type ApiRow = {
+    firstName?: string; lastName?: string
+    players?: { firstName: string; lastName: string; playerId: string }[]
+    position: string; total: string; currentRoundScore?: string
+    thru?: string; currentRound: unknown; teeTime?: string; teeTimeTimestamp?: unknown
+  }
+  const rows = (lb.leaderboardRows as ApiRow[]).flatMap((row) => {
     const tsMs = parseMongoDateMs(row.teeTimeTimestamp)
-    return {
-      golfer_name:  `${row.firstName} ${row.lastName}`,
+    const shared = {
       position:     row.position,
       total:        row.total,
       round_score:  row.currentRoundScore ?? null,
-      thru:         row.thru,
+      thru:         row.thru ?? '',
       round:        parseMongo(row.currentRound),
       tee_time:     tsMs !== null ? String(tsMs) : (row.teeTime ?? null),
       tournament_id: tournament.id,
       last_updated:  new Date().toISOString(),
     }
+    if (isTeamFormat && row.players) {
+      return row.players.map(p => ({ golfer_name: `${p.firstName} ${p.lastName}`, ...shared }))
+    }
+    return [{ golfer_name: `${row.firstName} ${row.lastName}`, ...shared }]
   })
 
   const { error: upsertErr } = await supabaseAdmin
@@ -333,9 +334,20 @@ export async function GET(req: NextRequest) {
         const pidToName: Record<string, string> = {}
         // playerId → position string (for missed-cut fallback)
         const pidToPosition: Record<string, string> = {}
-        for (const row of lb.leaderboardRows as { playerId: string; firstName: string; lastName: string; position: string }[]) {
-          pidToName[row.playerId] = `${row.firstName} ${row.lastName}`
-          pidToPosition[row.playerId] = row.position ?? ''
+        for (const row of lb.leaderboardRows as ApiRow[]) {
+          const pos = row.position ?? ''
+          if (isTeamFormat && row.players) {
+            for (const p of row.players) {
+              pidToName[p.playerId] = `${p.firstName} ${p.lastName}`
+              pidToPosition[p.playerId] = pos
+            }
+          } else if (row.firstName && row.lastName) {
+            const anyRow = row as ApiRow & { playerId?: string }
+            if (anyRow.playerId) {
+              pidToName[anyRow.playerId] = `${row.firstName} ${row.lastName}`
+              pidToPosition[anyRow.playerId] = pos
+            }
+          }
         }
 
         // normalized name → position (for missed-cut fallback lookup by name)
