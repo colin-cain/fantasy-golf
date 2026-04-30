@@ -70,29 +70,23 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  // Only process tournaments that haven't been finalized yet.
+  // Once earnings_finalized=true the cron skips them permanently, preventing
+  // daily API calls for tournaments where some picks legitimately earned $0
+  // (e.g. missed cuts on standard events that pay nothing outside the top 65).
   const { data: tournaments } = await supabase
     .from('tournaments')
     .select('id, name, api_tourn_id')
     .eq('status', 'completed')
+    .eq('earnings_finalized', false)
 
   if (!tournaments?.length) {
-    return NextResponse.json({ message: 'No completed tournaments found' })
+    return NextResponse.json({ message: 'No tournaments pending finalization' })
   }
 
   const results = []
 
   for (const tournament of tournaments) {
-    const { data: unpaidPicks } = await supabase
-      .from('picks')
-      .select('id, golfer_name')
-      .eq('tournament_id', tournament.id)
-      .eq('earnings', 0)
-
-    if (!unpaidPicks?.length) {
-      results.push({ tournament: tournament.name, skipped: 'already finalized' })
-      continue
-    }
-
     if (!tournament.api_tourn_id) {
       results.push({ tournament: tournament.name, skipped: 'no api_tourn_id' })
       continue
@@ -105,12 +99,25 @@ export async function GET(req: NextRequest) {
       continue
     }
 
+    const { data: picks } = await supabase
+      .from('picks')
+      .select('id, golfer_name')
+      .eq('tournament_id', tournament.id)
+
     let updated = 0
-    for (const pick of unpaidPicks) {
-      const earnings = nameToEarnings[normalizeName(pick.golfer_name)] ?? 0
-      await supabaseAdmin.from('picks').update({ earnings }).eq('id', pick.id)
-      updated++
+    if (picks?.length) {
+      for (const pick of picks) {
+        const earnings = nameToEarnings[normalizeName(pick.golfer_name)] ?? 0
+        await supabaseAdmin.from('picks').update({ earnings }).eq('id', pick.id)
+        updated++
+      }
     }
+
+    // Mark finalized so this tournament is never re-fetched
+    await supabaseAdmin
+      .from('tournaments')
+      .update({ earnings_finalized: true })
+      .eq('id', tournament.id)
 
     results.push({ tournament: tournament.name, updated })
   }

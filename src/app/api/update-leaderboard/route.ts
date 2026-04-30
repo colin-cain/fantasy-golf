@@ -400,9 +400,12 @@ export async function GET(req: NextRequest) {
 
   // Persist round status. Only mark completed once earnings are confirmed —
   // if the earnings API isn't ready yet the cron will keep retrying next run.
+  // Also set earnings_finalized=true so the daily finalize-earnings cron doesn't
+  // re-fetch this tournament for picks that legitimately earned $0 (missed cuts).
   const tournamentUpdate: Record<string, unknown> = { round_status: roundStatus }
   if (roundStatus === 'Official' && currentRound === 4 && earningsFinalized > 0) {
     tournamentUpdate.status = 'completed'
+    tournamentUpdate.earnings_finalized = true
   }
   await supabaseAdmin
     .from('tournaments')
